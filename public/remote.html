@@ -1,0 +1,770 @@
+<!-- /public/remote.html -->
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>TT Control Local</title>
+
+  <style>
+    :root{
+      --bg:#11151c;
+      --panel:#1e2530;
+      --panel-2:#263142;
+      --text:#ffffff;
+      --muted:rgba(255,255,255,.72);
+      --accent:#6d28ff;
+      --accent-2:#8b5cf6;
+      --red:#f80000;
+      --blue:#0070ff;
+      --orange:#ff9800;
+      --yellow:#ffc107;
+      --green:#a5ae58;
+      --danger:#b00020;
+      --radius:16px;
+      --font:Inter,-apple-system,BlinkMacSystemFont,"Segoe UI",system-ui,sans-serif;
+    }
+
+    *{
+      box-sizing:border-box;
+    }
+
+    body{
+      margin:0;
+      background:linear-gradient(180deg,#0f131a,#11151c);
+      color:var(--text);
+      font-family:var(--font);
+    }
+
+    .wrapper{
+      max-width:760px;
+      margin:auto;
+      padding:18px;
+    }
+
+    .tabs{
+      display:flex;
+      gap:10px;
+      margin-bottom:16px;
+    }
+
+    .tab{
+      flex:1;
+      padding:14px;
+      background:var(--panel);
+      text-align:center;
+      border-radius:14px;
+      font-weight:900;
+      cursor:pointer;
+      user-select:none;
+      transition:.18s ease;
+    }
+
+    .tab.active{
+      background:linear-gradient(180deg,var(--accent),var(--accent-2));
+    }
+
+    .page{
+      display:none;
+    }
+
+    .page.active{
+      display:block;
+    }
+
+    .inlineInfo{
+      display:flex;
+      flex-wrap:wrap;
+      gap:8px;
+      margin-bottom:14px;
+    }
+
+    .pill{
+      padding:8px 10px;
+      background:#121a24;
+      border-radius:999px;
+      font-size:12px;
+      font-weight:900;
+      color:var(--muted);
+    }
+
+    .scoreGrid{
+      display:grid;
+      grid-template-columns:1fr 1fr;
+      gap:15px;
+      margin-bottom:15px;
+    }
+
+    .card{
+      background:var(--panel);
+      padding:18px;
+      border-radius:20px;
+      text-align:center;
+      transition:.2s ease;
+      border:1px solid rgba(255,255,255,.05);
+    }
+
+    .card.flash{
+      animation:flash .25s ease;
+    }
+
+    @keyframes flash{
+      50%{ transform:scale(1.05); }
+    }
+
+    .teamLabel{
+      font-size:12px;
+      font-weight:900;
+      letter-spacing:.08em;
+      text-transform:uppercase;
+      color:var(--muted);
+      margin-bottom:8px;
+    }
+
+    .name{
+      font-weight:900;
+      font-size:20px;
+      margin-bottom:6px;
+      word-break:break-word;
+    }
+
+    .sub{
+      font-size:13px;
+      color:var(--muted);
+      margin-bottom:12px;
+      min-height:18px;
+    }
+
+    .points{
+      font-size:46px;
+      font-weight:900;
+      line-height:1;
+    }
+
+    .sets{
+      margin-top:10px;
+      font-size:14px;
+      color:var(--muted);
+      font-weight:800;
+    }
+
+    .section{
+      background:var(--panel);
+      padding:16px;
+      border-radius:20px;
+      margin-bottom:15px;
+      border:1px solid rgba(255,255,255,.05);
+    }
+
+    .sectionTitle{
+      font-size:13px;
+      font-weight:900;
+      text-transform:uppercase;
+      letter-spacing:.08em;
+      color:var(--muted);
+      margin-bottom:12px;
+    }
+
+    .btnGrid{
+      display:grid;
+      grid-template-columns:1fr 1fr;
+      gap:10px;
+    }
+
+    .stack{
+      display:grid;
+      gap:10px;
+    }
+
+    .row2{
+      display:grid;
+      grid-template-columns:1fr 1fr;
+      gap:10px;
+    }
+
+    button{
+      border:none;
+      border-radius:16px;
+      font-size:18px;
+      padding:15px;
+      width:100%;
+      font-weight:900;
+      cursor:pointer;
+      transition:.18s ease;
+      color:#fff;
+    }
+
+    button:active{
+      transform:scale(.97);
+    }
+
+    button:disabled{
+      opacity:.45;
+      cursor:not-allowed;
+    }
+
+    .startBtn{
+      background:var(--green);
+      color:#12170a;
+    }
+
+    .btnA{
+      background:var(--red);
+    }
+
+    .btnB{
+      background:var(--blue);
+    }
+
+    .timeout{
+      background:var(--orange);
+      color:#231600;
+    }
+
+    .endTimeout{
+      background:var(--yellow);
+      color:#111;
+    }
+
+    .small{
+      font-size:15px;
+      padding:12px;
+      background:var(--panel-2);
+    }
+
+    .tiny{
+      font-size:13px;
+      padding:10px;
+      border-radius:12px;
+      background:#334255;
+    }
+
+    .danger{
+      background:var(--danger);
+    }
+
+    label{
+      display:block;
+      font-size:13px;
+      font-weight:800;
+      color:var(--muted);
+      margin-bottom:6px;
+    }
+
+    input,select{
+      width:100%;
+      padding:12px;
+      border-radius:12px;
+      border:none;
+      background:#121a24;
+      color:white;
+      font-size:16px;
+      outline:none;
+    }
+
+    .status{
+      margin-top:8px;
+      font-size:13px;
+      color:var(--muted);
+      font-weight:700;
+      line-height:1.45;
+    }
+
+    @media (max-width: 640px){
+      .scoreGrid,
+      .btnGrid,
+      .row2{
+        grid-template-columns:1fr;
+      }
+
+      .wrapper{
+        padding:14px;
+      }
+    }
+  </style>
+</head>
+<body>
+<div class="wrapper">
+  <div class="tabs">
+    <div class="tab active" data-page="match">Match</div>
+    <div class="tab" data-page="settings">Clubs</div>
+  </div>
+
+  <div id="match" class="page active">
+    <div class="inlineInfo">
+      <div class="pill" id="pillMode">SIMPLE</div>
+      <div class="pill" id="pillBestOf">BO5</div>
+      <div class="pill" id="pillRound">MATCH</div>
+      <div class="pill" id="pillServeur">SERVICE: -</div>
+      <div class="pill" id="pillTimeout">TIMEOUT: NON</div>
+      <div class="pill" id="pillTeamA">EQ A: 0</div>
+      <div class="pill" id="pillTeamB">EQ B: 0</div>
+    </div>
+
+    <div class="scoreGrid">
+      <div class="card" id="cardA">
+        <div class="teamLabel">Club A</div>
+        <div class="name" id="nameA">JOUEUR A</div>
+        <div class="sub" id="subA">#1</div>
+        <div class="points" id="scoreA">0</div>
+        <div class="sets" id="setsA">Sets: 0</div>
+      </div>
+
+      <div class="card" id="cardB">
+        <div class="teamLabel">Club B</div>
+        <div class="name" id="nameB">JOUEUR B</div>
+        <div class="sub" id="subB">#2</div>
+        <div class="points" id="scoreB">0</div>
+        <div class="sets" id="setsB">Sets: 0</div>
+      </div>
+    </div>
+
+    <div class="section">
+      <div class="sectionTitle">Match</div>
+
+      <div class="stack">
+        <button class="startBtn" id="startBtn">Démarrer / Choisir le premier serveur</button>
+
+        <div class="btnGrid">
+          <button class="btnA" id="btnA" disabled>+1 A</button>
+          <button class="btnB" id="btnB" disabled>+1 B</button>
+        </div>
+
+        <div class="btnGrid">
+          <button class="tiny" id="btnTeamA">+1 Equipe A</button>
+          <button class="tiny" id="btnTeamB">+1 Equipe B</button>
+        </div>
+
+        <div class="btnGrid">
+          <button class="timeout" id="toA">Temps mort A</button>
+          <button class="timeout" id="toB">Temps mort B</button>
+        </div>
+
+        <button class="endTimeout" id="endTimeout" style="display:none;">Fin du temps mort</button>
+
+        <div class="btnGrid">
+          <button class="small" id="undoBtn">Annuler</button>
+          <button class="small danger" id="resetMatchBtn">Reset Match</button>
+        </div>
+
+        <button class="small danger" id="resetMeetingBtn">Reset Rencontre</button>
+      </div>
+
+      <div class="status" id="status">Connexion…</div>
+    </div>
+  </div>
+
+  <div id="settings" class="page">
+    <div class="section">
+      <div class="sectionTitle">Configuration</div>
+
+      <div class="stack">
+        <div>
+          <label for="mode">Mode du match</label>
+          <select id="mode">
+            <option value="singles">Simple</option>
+            <option value="doubles">Doubles</option>
+          </select>
+        </div>
+
+        <div>
+          <label for="roundName">Nom de la rencontre</label>
+          <input id="roundName" placeholder="Ex: Quart de finale" />
+        </div>
+
+        <div>
+          <label for="bestOf">Format de la rencontre</label>
+          <select id="bestOf">
+            <option value="3">BO3</option>
+            <option value="5">BO5</option>
+            <option value="7">BO7</option>
+          </select>
+        </div>
+
+        <div class="row2">
+          <div>
+            <label for="clubA">Club A</label>
+            <input id="clubA" placeholder="Nom du club A" />
+          </div>
+          <div>
+            <label for="rankA">Classement A</label>
+            <input id="rankA" placeholder="Ex: 12" />
+          </div>
+        </div>
+
+        <div class="row2">
+          <div>
+            <label for="clubB">Club B</label>
+            <input id="clubB" placeholder="Nom du club B" />
+          </div>
+          <div>
+            <label for="rankB">Classement B</label>
+            <input id="rankB" placeholder="Ex: 8" />
+          </div>
+        </div>
+
+        <div class="row2">
+          <div>
+            <label for="playerA">Joueur A</label>
+            <input id="playerA" placeholder="Nom du joueur A" />
+          </div>
+          <div>
+            <label for="playerB">Joueur B</label>
+            <input id="playerB" placeholder="Nom du joueur B" />
+          </div>
+        </div>
+
+        <button class="btnA" id="applyBtn">Appliquer</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script src="/socket.io/socket.io.js"></script>
+<script>
+  const room = new URLSearchParams(location.search).get("room") || "table1";
+  const socket = typeof io === "function" ? io() : null;
+  const el = (id) => document.getElementById(id);
+
+  let lastState = null;
+
+  document.querySelectorAll(".tab").forEach((tab) => {
+    tab.addEventListener("click", () => {
+      const page = tab.dataset.page;
+      document.querySelectorAll(".page").forEach((p) => p.classList.remove("active"));
+      document.querySelectorAll(".tab").forEach((t) => t.classList.remove("active"));
+      document.getElementById(page).classList.add("active");
+      tab.classList.add("active");
+    });
+  });
+
+  function safeSend(type, data = {}) {
+    if (!socket || !socket.connected) return;
+    socket.emit("action", { room, type, ...data });
+  }
+
+  function flash(team) {
+    const card = team === "A" ? el("cardA") : el("cardB");
+    card.classList.add("flash");
+    setTimeout(() => card.classList.remove("flash"), 250);
+  }
+
+  function safeText(value, fallback = "") {
+    const text = String(value ?? fallback).trim();
+    return text || fallback;
+  }
+
+  function getModeLabel(mode) {
+    return mode === "doubles" ? "DOUBLES" : "SIMPLE";
+  }
+
+  function getRank(st, side) {
+    if (st.rankings && st.rankings[side] != null) return String(st.rankings[side]).replace(/^#/, "");
+    if (st.ranks && st.ranks[side] != null) return String(st.ranks[side]).replace(/^#/, "");
+    return "";
+  }
+
+  function renderSub(st, side) {
+    const mode = st.mode === "doubles" ? "doubles" : "singles";
+    const rank = getRank(st, side);
+
+    if (mode === "doubles") {
+      return "Classement masqué en doubles";
+    }
+
+    return rank ? `#${rank}` : "Sans classement";
+  }
+
+  function isMatchLocked(st) {
+    const bestOf = Number.isFinite(Number(st.bestOf)) ? Number(st.bestOf) : 5;
+    const needed = Math.ceil(bestOf / 2);
+    return Number(st.sets?.A || 0) >= needed || Number(st.sets?.B || 0) >= needed;
+  }
+
+  function updateStatus(text) {
+    el("status").textContent = text;
+  }
+
+  function applySettings() {
+    safeSend("APPLY_SETTINGS", {
+      payload: {
+        mode: el("mode").value,
+        roundName: safeText(el("roundName").value, "MATCH"),
+        clubs: {
+          A: safeText(el("clubA").value, "CLUB A"),
+          B: safeText(el("clubB").value, "CLUB B")
+        },
+        players: {
+          A: safeText(el("playerA").value, "JOUEUR A"),
+          B: safeText(el("playerB").value, "JOUEUR B")
+        },
+        rankings: {
+          A: safeText(el("rankA").value, ""),
+          B: safeText(el("rankB").value, "")
+        },
+        bestOf: parseInt(el("bestOf").value, 10) || 5
+      }
+    });
+  }
+
+  function bindActions(st) {
+    const timeoutActive = Boolean(st.timeoutActive);
+    const locked = isMatchLocked(st);
+
+    el("btnA").disabled = timeoutActive || locked;
+    el("btnB").disabled = timeoutActive || locked;
+
+    el("btnA").onclick = () => {
+      safeSend("POINT_A");
+      flash("A");
+    };
+
+    el("btnB").onclick = () => {
+      safeSend("POINT_B");
+      flash("B");
+    };
+
+    el("btnTeamA").onclick = () => safeSend("TEAM_POINT_A");
+    el("btnTeamB").onclick = () => safeSend("TEAM_POINT_B");
+
+    el("toA").onclick = () => safeSend("TIMEOUT_START", { by: "A" });
+    el("toB").onclick = () => safeSend("TIMEOUT_START", { by: "B" });
+    el("endTimeout").onclick = () => safeSend("TIMEOUT_END");
+    el("undoBtn").onclick = () => safeSend("UNDO");
+    el("resetMatchBtn").onclick = () => safeSend("RESET_MATCH");
+    el("resetMeetingBtn").onclick = () => safeSend("RESET_RENCONTRE");
+
+    el("toA").disabled = timeoutActive || Boolean(st.timeoutUsed?.A);
+    el("toB").disabled = timeoutActive || Boolean(st.timeoutUsed?.B);
+
+    el("endTimeout").style.display = timeoutActive ? "block" : "none";
+
+    const isFreshMatch =
+            Number(st.points?.A || 0) === 0 &&
+            Number(st.points?.B || 0) === 0 &&
+            Number(st.sets?.A || 0) === 0 &&
+            Number(st.sets?.B || 0) === 0;
+
+        el("startBtn").style.display = isFreshMatch && !locked ? "block" : "none";
+
+    el("startBtn").onclick = () => {
+      if (!lastState) {
+        alert("Connexion en cours avec le serveur…");
+        return;
+      }
+
+      const nameA = safeText(st.players?.A, "JOUEUR A");
+      const nameB = safeText(st.players?.B, "JOUEUR B");
+
+      const choice = prompt(
+              "Qui sert en premier ?\n\n1 = " + nameA + "\n2 = " + nameB
+      );
+
+      if (choice === "1") safeSend("SET_SERVE", { serve: "A" });
+      if (choice === "2") safeSend("SET_SERVE", { serve: "B" });
+    };
+  }
+
+  function render(st) {
+    lastState = st;
+
+    const mode = st.mode === "doubles" ? "doubles" : "singles";
+    const clubA = safeText(st.clubs?.A ?? st.players?.A, "CLUB A");
+    const clubB = safeText(st.clubs?.B ?? st.players?.B, "CLUB B");
+    const nameA = safeText(st.players?.A, "JOUEUR A");
+    const nameB = safeText(st.players?.B, "JOUEUR B");
+
+    el("nameA").textContent = nameA;
+    el("nameB").textContent = nameB;
+    el("subA").textContent = renderSub(st, "A");
+    el("subB").textContent = renderSub(st, "B");
+
+    el("scoreA").textContent = String(st.points?.A ?? 0);
+    el("scoreB").textContent = String(st.points?.B ?? 0);
+    el("setsA").textContent = `Sets: ${st.sets?.A ?? 0}`;
+    el("setsB").textContent = `Sets: ${st.sets?.B ?? 0}`;
+
+    el("btnA").textContent = `+1 ${clubA}`;
+    el("btnB").textContent = `+1 ${clubB}`;
+
+    el("pillMode").textContent = getModeLabel(mode);
+    el("pillBestOf").textContent = `BO${st.bestOf || 5}`;
+    el("pillRound").textContent = safeText(st.roundName || st.round, "MATCH");
+    el("pillServeur").textContent = `SERVICE: ${st.server || "-"}`;
+    el("pillTimeout").textContent = st.timeoutActive
+            ? `TIMEOUT: ${st.timeoutBy || "EN COURS"}`
+            : "TIMEOUT: NON";
+    el("pillTeamA").textContent = `EQ A: ${st.teamScore?.A ?? 0}`;
+    el("pillTeamB").textContent = `EQ B: ${st.teamScore?.B ?? 0}`;
+
+    el("mode").value = mode;
+    el("roundName").value = safeText(st.roundName || st.round, "MATCH");
+    el("clubA").value = clubA;
+    el("clubB").value = clubB;
+    el("playerA").value = nameA;
+    el("playerB").value = nameB;
+    el("rankA").value = getRank(st, "A");
+    el("rankB").value = getRank(st, "B");
+    el("bestOf").value = String(st.bestOf || 5);
+
+    bindActions(st);
+
+    updateStatus(
+            "Connecté • ← point A • → point B • 1 timeout A • 2 timeout B • T fin timeout • S service A • D service B • Entrée applique paramètres • ⌫ annuler • R reset"
+    );
+  }
+
+  function isTypingTarget(target) {
+    if (!target) return false;
+
+    const tag = (target.tagName || "").toUpperCase();
+
+    return (
+            tag === "INPUT" ||
+            tag === "TEXTAREA" ||
+            tag === "SELECT" ||
+            target.isContentEditable
+    );
+  }
+
+  function confirmResetByShortcut() {
+    return window.confirm("Confirmer le reset du match ?");
+  }
+
+  document.addEventListener("keydown", (event) => {
+    if (isTypingTarget(event.target)) return;
+    if (!lastState) return;
+
+    const key = event.key;
+    const timeoutActive = Boolean(lastState.timeoutActive);
+    const locked = isMatchLocked(lastState);
+
+    if (key === "ArrowLeft") {
+      if (!timeoutActive && !locked) {
+        event.preventDefault();
+        safeSend("POINT_A");
+        flash("A");
+      }
+      return;
+    }
+
+    if (key === "ArrowRight") {
+      if (!timeoutActive && !locked) {
+        event.preventDefault();
+        safeSend("POINT_B");
+        flash("B");
+      }
+      return;
+    }
+
+    if (key === "1") {
+      if (!timeoutActive && !lastState.timeoutUsed?.A) {
+        event.preventDefault();
+        safeSend("TIMEOUT_START", { by: "A" });
+      }
+      return;
+    }
+
+    if (key === "2") {
+      if (!timeoutActive && !lastState.timeoutUsed?.B) {
+        event.preventDefault();
+        safeSend("TIMEOUT_START", { by: "B" });
+      }
+      return;
+    }
+
+    if (key.toLowerCase() === "t") {
+      if (timeoutActive) {
+        event.preventDefault();
+        safeSend("TIMEOUT_END");
+      }
+      return;
+    }
+
+    if (key.toLowerCase() === "s") {
+      event.preventDefault();
+      safeSend("SET_SERVE", { serve: "A" });
+      return;
+    }
+
+    if (key.toLowerCase() === "d") {
+      event.preventDefault();
+      safeSend("SET_SERVE", { serve: "B" });
+      return;
+    }
+
+    if (key === "Backspace") {
+      event.preventDefault();
+      safeSend("UNDO");
+      return;
+    }
+
+    if (key.toLowerCase() === "r") {
+      event.preventDefault();
+      if (confirmResetByShortcut()) {
+        safeSend("RESET_MATCH");
+      }
+      return;
+    }
+
+    if (key === "Enter") {
+      const activeElement = document.activeElement;
+      if (activeElement && activeElement.closest("#settings")) {
+        event.preventDefault();
+        applySettings();
+      }
+      return;
+    }
+
+    if (key === " ") {
+      const isFreshMatch =
+              Number(lastState.points?.A || 0) === 0 &&
+              Number(lastState.points?.B || 0) === 0 &&
+              Number(lastState.sets?.A || 0) === 0 &&
+              Number(lastState.sets?.B || 0) === 0;
+
+      if (isFreshMatch) {
+        event.preventDefault();
+
+        const nameA = safeText(lastState.players?.A, "JOUEUR A");
+        const nameB = safeText(lastState.players?.B, "JOUEUR B");
+
+        const choice = prompt(
+                "Qui sert en premier ?\n\n1 = " + nameA + "\n2 = " + nameB
+        );
+
+        if (choice === "1") safeSend("SET_SERVE", { serve: "A" });
+        if (choice === "2") safeSend("SET_SERVE", { serve: "B" });
+      }
+    }
+  });
+
+  if (!socket) {
+    if (location.protocol === "file:") {
+      updateStatus("Page ouverte en local (file://). Ouvre plutot: http://localhost:3000/remote.html?room=table1");
+    } else {
+      updateStatus("Socket.IO indisponible. Verifie que le serveur est lance avec: node server.js");
+    }
+  } else {
+    socket.on("connect", () => {
+      socket.emit("join", room);
+      updateStatus("Connecté au serveur local");
+    });
+
+    socket.on("connect_error", () => {
+      updateStatus("Connexion impossible. Verifie: http://localhost:3000/remote.html?room=table1");
+    });
+
+    socket.on("disconnect", () => {
+      updateStatus("Déconnecté");
+    });
+
+    socket.on("state", (st) => {
+      render(st);
+    });
+  }
+
+  el("applyBtn").addEventListener("click", applySettings);
+</script>
+</body>
+</html>

@@ -1,0 +1,639 @@
+<!-- /public/overlay.html -->
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8" />
+  <title>TT Overlay Local</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <style>
+    :root{
+      --bg: rgba(9, 10, 14, 0.90);
+      --bg-2: rgba(17, 18, 26, 0.94);
+      --stroke: rgba(255,255,255,.08);
+      --text: rgba(255,255,255,.96);
+      --text-soft: rgba(255,255,255,.72);
+      --purple: #d100ff;
+      --score-active: linear-gradient(180deg, #5845ff 0%, #0073ff 100%);
+      --score-idle: linear-gradient(180deg, #7e3dff 0%, #5810d9 100%);
+      --timeout-a: linear-gradient(90deg, rgba(255, 193, 7, .30), rgba(255, 111, 0, .18));
+      --timeout-b: linear-gradient(90deg, rgba(0, 208, 255, .28), rgba(92, 51, 255, .18));
+      --shadow: 0 18px 42px rgba(0,0,0,.36);
+      --radius: 12px;
+      --font: Inter, -apple-system, BlinkMacSystemFont, "Segoe UI", system-ui, sans-serif;
+    }
+
+    *{ box-sizing:border-box; }
+
+    html,body{
+      margin:0;
+      width:100%;
+      height:100%;
+      overflow:hidden;
+      background:transparent;
+      font-family:var(--font);
+    }
+
+    .overlay{
+      position:fixed;
+      left:28px;
+      bottom:28px;
+      width:620px;
+      color:var(--text);
+      pointer-events:none;
+      user-select:none;
+    }
+
+    .topband{
+      display:grid;
+      grid-template-columns:1fr auto 1fr;
+      align-items:stretch;
+      gap:6px;
+      margin-bottom:8px;
+      padding:6px;
+      border-radius:12px;
+      border:1px solid rgba(255,255,255,.10);
+      background:linear-gradient(180deg, rgba(18, 20, 30, .94), rgba(9, 10, 14, .96));
+      backdrop-filter:blur(14px);
+      -webkit-backdrop-filter:blur(14px);
+      box-shadow:var(--shadow);
+    }
+
+    .teamBlock{
+      display:grid;
+      grid-template-columns:minmax(0, 1fr) auto;
+      align-items:center;
+      gap:8px;
+      min-width:0;
+      padding:7px 10px;
+      border-radius:10px;
+      border:1px solid rgba(255,255,255,.08);
+      background:rgba(255,255,255,.04);
+    }
+
+    .teamBlock.right{
+      text-align:right;
+      grid-template-columns:auto minmax(0, 1fr);
+    }
+
+    .teamName{
+      min-width:0;
+      overflow:hidden;
+      text-overflow:ellipsis;
+      white-space:nowrap;
+      font-size:11px;
+      font-weight:900;
+      letter-spacing:.12em;
+      text-transform:uppercase;
+      color:var(--text-soft);
+    }
+
+    .teamScore{
+      font-size:22px;
+      line-height:1;
+      font-weight:900;
+      font-variant-numeric:tabular-nums;
+      color:#fff;
+    }
+
+    .topDivider{
+      width:1px;
+      background:linear-gradient(180deg, transparent, rgba(255,255,255,.22), transparent);
+    }
+
+    .banners{
+      display:flex;
+      flex-direction:column;
+      align-items:flex-start;
+      gap:8px;
+      margin-bottom:10px;
+    }
+
+    .banner{
+      display:none;
+      align-items:center;
+      gap:10px;
+      min-height:40px;
+      padding:8px 14px;
+      border-radius:10px;
+      font-weight:900;
+      letter-spacing:.04em;
+      text-transform:uppercase;
+      border:1px solid rgba(255,255,255,.10);
+      backdrop-filter:blur(10px);
+      -webkit-backdrop-filter:blur(10px);
+      box-shadow:var(--shadow);
+    }
+
+    .banner.timeout{
+      background:linear-gradient(180deg, rgba(255,193,7,.92), rgba(255,111,0,.92));
+      color:#1a1200;
+    }
+
+    .banner.match{
+      background:linear-gradient(180deg, rgba(255,23,68,.94), rgba(183,0,52,.94));
+      color:#fff;
+    }
+
+    .timer{
+      min-width:54px;
+      text-align:center;
+      padding:4px 8px;
+      border-radius:999px;
+      background:rgba(0,0,0,.18);
+      font-variant-numeric:tabular-nums;
+    }
+
+    .card{
+      background:linear-gradient(180deg, var(--bg), var(--bg-2));
+      border:1px solid var(--stroke);
+      border-radius:14px;
+      overflow:hidden;
+      backdrop-filter:blur(14px);
+      -webkit-backdrop-filter:blur(14px);
+      box-shadow:var(--shadow);
+    }
+
+    .row{
+      display:grid;
+      grid-template-columns: 1fr 18px 52px 62px;
+      align-items:center;
+      gap:10px;
+      min-height:54px;
+      padding:0 14px;
+      position:relative;
+      background:transparent;
+      transition:background .18s ease;
+    }
+
+    .row + .row{
+      border-top:1px solid rgba(255,255,255,.08);
+    }
+
+    .row-main{
+      min-width:0;
+      display:grid;
+      grid-template-columns:16px 1fr;
+      align-items:center;
+      gap:10px;
+    }
+
+    .row.timeoutA{
+      background:var(--timeout-a);
+    }
+
+    .row.timeoutB{
+      background:var(--timeout-b);
+    }
+
+    .serve{
+      width:0;
+      height:0;
+      border-top:7px solid transparent;
+      border-bottom:7px solid transparent;
+      border-left:11px solid transparent;
+      opacity:0;
+      transform:translateX(-2px);
+      transition:.18s ease;
+      filter:drop-shadow(0 0 8px rgba(209, 0, 255, .55));
+    }
+
+    .serve.on{
+      opacity:1;
+      transform:translateX(0);
+      border-left-color:var(--purple);
+    }
+
+    .nameWrap{
+      min-width:0;
+      display:flex;
+      align-items:baseline;
+      gap:8px;
+      overflow:hidden;
+      white-space:nowrap;
+    }
+
+    .name{
+      min-width:0;
+      overflow:hidden;
+      text-overflow:ellipsis;
+      font-size:18px;
+      line-height:1;
+      font-weight:900;
+      letter-spacing:.01em;
+      text-transform:uppercase;
+      color:var(--text);
+    }
+
+    .rank{
+      flex:0 0 auto;
+      font-size:12px;
+      line-height:1;
+      font-weight:800;
+      color:var(--text-soft);
+    }
+
+    .rank.hidden{
+      display:none;
+    }
+
+    .timeoutIcon{
+      font-size:12px;
+      opacity:.18;
+      justify-self:end;
+      transition:.18s ease;
+    }
+
+    .timeoutIcon.on{
+      opacity:1;
+      transform:scale(1.06);
+    }
+
+    .sets{
+      text-align:center;
+      font-size:20px;
+      font-weight:900;
+      font-variant-numeric:tabular-nums;
+      color:#fff;
+    }
+
+    .score{
+      display:grid;
+      place-items:center;
+      min-height:54px;
+      margin-right:-14px;
+      font-size:30px;
+      font-weight:900;
+      font-variant-numeric:tabular-nums;
+      color:#121212;
+      background:var(--score-idle);
+    }
+
+    .row.leading .score{
+      background:var(--score-active);
+      color:#111;
+    }
+
+    @media (max-width: 640px){
+      .overlay{
+        left:16px;
+        bottom:16px;
+        width:min(92vw, 620px);
+      }
+
+      .topband{
+        gap:5px;
+        padding:5px;
+      }
+
+      .teamBlock{
+        padding:6px 8px;
+      }
+
+      .teamName{
+        font-size:10px;
+      }
+
+      .teamScore{
+        font-size:18px;
+      }
+
+      .row{
+        grid-template-columns: 1fr 16px 48px 56px;
+      }
+
+      .name{
+        font-size:16px;
+      }
+
+      .score{
+        font-size:26px;
+      }
+    }
+  </style>
+</head>
+<body>
+<div class="overlay">
+  <div class="topband">
+    <div class="teamBlock left">
+      <span class="teamName" id="teamNameA">CLUB A</span>
+      <span class="teamScore" id="teamScoreA">0</span>
+    </div>
+    <div class="topDivider"></div>
+    <div class="teamBlock right">
+      <span class="teamScore" id="teamScoreB">0</span>
+      <span class="teamName" id="teamNameB">CLUB B</span>
+    </div>
+  </div>
+
+  <div class="banners">
+    <div class="banner timeout" id="timeoutBanner">
+      <span id="timeoutLabel">TEMPS MORT</span>
+      <span class="timer" id="timeoutTimer">1:00</span>
+    </div>
+
+    <div class="banner match" id="matchBanner">
+      <span>BALLE DE MATCH</span>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="row" id="rowA">
+      <div class="row-main">
+        <div class="serve" id="serveA"></div>
+        <div class="nameWrap">
+          <span class="name" id="nameA">JOUEUR A</span>
+          <span class="rank" id="rankA">#1</span>
+        </div>
+      </div>
+      <div class="timeoutIcon" id="toA">🕒</div>
+      <div class="sets" id="setsA">0</div>
+      <div class="score" id="scoreA">0</div>
+    </div>
+
+    <div class="row" id="rowB">
+      <div class="row-main">
+        <div class="serve" id="serveB"></div>
+        <div class="nameWrap">
+          <span class="name" id="nameB">JOUEUR B</span>
+          <span class="rank" id="rankB">#2</span>
+        </div>
+      </div>
+      <div class="timeoutIcon" id="toB">🕒</div>
+      <div class="sets" id="setsB">0</div>
+      <div class="score" id="scoreB">0</div>
+    </div>
+  </div>
+
+</div>
+
+<script src="/socket.io/socket.io.js"></script>
+<script>
+  const room = new URLSearchParams(location.search).get("room") || "table1";
+  const socket = io();
+  const el = (id) => document.getElementById(id);
+
+  const refs = {
+    teamNameA: el("teamNameA"),
+    teamNameB: el("teamNameB"),
+    teamScoreA: el("teamScoreA"),
+    teamScoreB: el("teamScoreB"),
+    rowA: el("rowA"),
+    rowB: el("rowB"),
+    nameA: el("nameA"),
+    nameB: el("nameB"),
+    rankA: el("rankA"),
+    rankB: el("rankB"),
+    scoreA: el("scoreA"),
+    scoreB: el("scoreB"),
+    setsA: el("setsA"),
+    setsB: el("setsB"),
+    serveA: el("serveA"),
+    serveB: el("serveB"),
+    toA: el("toA"),
+    toB: el("toB"),
+    timeoutBanner: el("timeoutBanner"),
+    timeoutLabel: el("timeoutLabel"),
+    timeoutTimer: el("timeoutTimer"),
+    matchBanner: el("matchBanner")
+  };
+
+  let bestOf = 5;
+  let timeoutInterval = null;
+  let timeoutEndAt = null;
+
+  function safeText(value, fallback = "") {
+    const text = String(value ?? fallback).trim();
+    return text || fallback;
+  }
+
+  function safeInt(value, fallback = 0) {
+    const n = Number(value);
+    return Number.isFinite(n) ? Math.max(0, Math.floor(n)) : fallback;
+  }
+
+  function getMode(st) {
+    return st.mode === "doubles" ? "doubles" : "singles";
+  }
+
+  function getRanking(st, side) {
+    if (st.rankings && st.rankings[side] != null) return safeText(st.rankings[side]);
+    if (st.ranks && st.ranks[side] != null) return safeText(st.ranks[side]);
+    return "";
+  }
+
+  function showRankings(st) {
+    if (typeof st.showRankings === "boolean") return st.showRankings;
+    return getMode(st) !== "doubles";
+  }
+
+  function getTimeoutBy(st) {
+    if (st.timeoutBy === "A" || st.timeoutBy === "B") return st.timeoutBy;
+    return null;
+  }
+
+  function fitTextToWidth(element, options = {}) {
+    const maxPx = options.maxPx || 18;
+    const minPx = options.minPx || 11;
+    const target = safeText(options.text ?? element.textContent);
+
+    if (!element || !target) return;
+
+    element.textContent = target;
+    element.style.fontSize = `${maxPx}px`;
+
+    const width = element.clientWidth;
+    if (!width) return;
+
+    let low = minPx;
+    let high = maxPx;
+    let best = minPx;
+
+    while (low <= high) {
+      const mid = Math.floor((low + high) / 2);
+      element.style.fontSize = `${mid}px`;
+
+      if (element.scrollWidth <= width) {
+        best = mid;
+        low = mid + 1;
+      } else {
+        high = mid - 1;
+      }
+    }
+
+    element.style.fontSize = `${best}px`;
+  }
+
+  function formatTimer(totalSec) {
+    const sec = Math.max(0, safeInt(totalSec));
+    const mm = String(Math.floor(sec / 60));
+    const ss = String(sec % 60).padStart(2, "0");
+    return `${mm}:${ss}`;
+  }
+
+  function clearTimerLoop() {
+    if (timeoutInterval) {
+      clearInterval(timeoutInterval);
+      timeoutInterval = null;
+    }
+    timeoutEndAt = null;
+  }
+
+  function setTimeoutBannerVisible(visible) {
+    refs.timeoutBanner.style.display = visible ? "inline-flex" : "none";
+  }
+
+  function updateTimerDisplayFromEndAt() {
+    if (!timeoutEndAt) {
+      refs.timeoutTimer.textContent = "1:00";
+      return;
+    }
+
+    const remainingSec = Math.max(0, Math.ceil((timeoutEndAt - Date.now()) / 1000));
+    refs.timeoutTimer.textContent = formatTimer(remainingSec);
+
+    if (remainingSec <= 0) {
+      clearTimerLoop();
+    }
+  }
+
+  function startLocalTimeoutCountdown(st) {
+    clearTimerLoop();
+
+    const durationSec = safeInt(st.timeoutDurationSec, 60);
+
+    if (st.timeoutRemainingSec != null) {
+      timeoutEndAt = Date.now() + safeInt(st.timeoutRemainingSec) * 1000;
+    } else if (st.timeoutStartedAt != null) {
+      const startedAt = new Date(st.timeoutStartedAt).getTime();
+      timeoutEndAt = Number.isFinite(startedAt)
+              ? startedAt + durationSec * 1000
+              : Date.now() + durationSec * 1000;
+    } else {
+      timeoutEndAt = Date.now() + durationSec * 1000;
+    }
+
+    updateTimerDisplayFromEndAt();
+    timeoutInterval = setInterval(updateTimerDisplayFromEndAt, 250);
+  }
+
+  function matchPoint(st) {
+    const need = Math.ceil(bestOf / 2);
+    const a = safeInt(st.points?.A);
+    const b = safeInt(st.points?.B);
+
+    if (safeInt(st.sets?.A) === need - 1 && a >= 10 && a - b >= 1) return true;
+    if (safeInt(st.sets?.B) === need - 1 && b >= 10 && b - a >= 1) return true;
+
+    return false;
+  }
+
+  function updateLeader(st) {
+    refs.rowA.classList.remove("leading");
+    refs.rowB.classList.remove("leading");
+
+    const a = safeInt(st.points?.A);
+    const b = safeInt(st.points?.B);
+
+    if (a > b) refs.rowA.classList.add("leading");
+    if (b > a) refs.rowB.classList.add("leading");
+  }
+
+  function updateTimeoutStyle(st) {
+    refs.rowA.classList.remove("timeoutA", "timeoutB");
+    refs.rowB.classList.remove("timeoutA", "timeoutB");
+
+    if (!st.timeoutActive) {
+      setTimeoutBannerVisible(false);
+      clearTimerLoop();
+      return;
+    }
+
+    const timeoutBy = getTimeoutBy(st);
+
+    refs.timeoutLabel.textContent =
+            timeoutBy === "A" ? "TEMPS MORT A" :
+                    timeoutBy === "B" ? "TEMPS MORT B" :
+                            "TEMPS MORT";
+
+    setTimeoutBannerVisible(true);
+
+    if (timeoutBy === "A") refs.rowA.classList.add("timeoutA");
+    if (timeoutBy === "B") refs.rowB.classList.add("timeoutB");
+
+    startLocalTimeoutCountdown(st);
+  }
+
+  function render(st) {
+    bestOf = safeInt(st.bestOf, 5);
+
+    const rankingsVisible = showRankings(st);
+    const rankA = getRanking(st, "A");
+    const rankB = getRanking(st, "B");
+    const clubA = safeText(st.clubs?.A ?? st.players?.A, "CLUB A");
+    const clubB = safeText(st.clubs?.B ?? st.players?.B, "CLUB B");
+
+    refs.teamNameA.textContent = clubA;
+    refs.teamNameB.textContent = clubB;
+
+    const playerA = safeText(st.players?.A, clubA);
+    const playerB = safeText(st.players?.B, clubB);
+
+    refs.nameA.textContent = playerA;
+    refs.nameB.textContent = playerB;
+    fitTextToWidth(refs.nameA, { text: playerA, maxPx: 18, minPx: 11 });
+    fitTextToWidth(refs.nameB, { text: playerB, maxPx: 18, minPx: 11 });
+
+    fitTextToWidth(refs.teamNameA, { text: clubA, maxPx: 11, minPx: 9 });
+    fitTextToWidth(refs.teamNameB, { text: clubB, maxPx: 11, minPx: 9 });
+
+    refs.rankA.textContent = rankA ? `#${rankA.replace(/^#/, "")}` : "";
+    refs.rankB.textContent = rankB ? `#${rankB.replace(/^#/, "")}` : "";
+
+    refs.rankA.classList.toggle("hidden", !rankingsVisible || !rankA);
+    refs.rankB.classList.toggle("hidden", !rankingsVisible || !rankB);
+
+    refs.scoreA.textContent = String(safeInt(st.points?.A));
+    refs.scoreB.textContent = String(safeInt(st.points?.B));
+
+    refs.setsA.textContent = String(safeInt(st.sets?.A));
+    refs.setsB.textContent = String(safeInt(st.sets?.B));
+
+    refs.serveA.classList.toggle("on", st.server === "A");
+    refs.serveB.classList.toggle("on", st.server === "B");
+
+    refs.toA.classList.toggle("on", Boolean(st.timeoutUsed?.A));
+    refs.toB.classList.toggle("on", Boolean(st.timeoutUsed?.B));
+
+    refs.teamScoreA.textContent = String(safeInt(st.teamScore?.A, safeInt(st.sets?.A)));
+    refs.teamScoreB.textContent = String(safeInt(st.teamScore?.B, safeInt(st.sets?.B)));
+
+    refs.matchBanner.style.display = matchPoint(st) ? "inline-flex" : "none";
+
+    updateLeader(st);
+    updateTimeoutStyle(st);
+  }
+
+  socket.on("connect", () => {
+    socket.emit("join", room);
+  });
+
+  socket.on("state", (st) => {
+    render(st);
+  });
+
+  window.addEventListener("resize", () => {
+    const currentNameA = refs.nameA.textContent;
+    const currentNameB = refs.nameB.textContent;
+    const currentClubA = refs.teamNameA.textContent;
+    const currentClubB = refs.teamNameB.textContent;
+
+    fitTextToWidth(refs.nameA, { text: currentNameA, maxPx: 18, minPx: 11 });
+    fitTextToWidth(refs.nameB, { text: currentNameB, maxPx: 18, minPx: 11 });
+    fitTextToWidth(refs.teamNameA, { text: currentClubA, maxPx: 11, minPx: 9 });
+    fitTextToWidth(refs.teamNameB, { text: currentClubB, maxPx: 11, minPx: 9 });
+  });
+
+  window.addEventListener("beforeunload", clearTimerLoop);
+</script>
+</body>
+</html>
