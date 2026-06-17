@@ -12,8 +12,26 @@ app.use(express.static("public"));
 const rooms = new Map();
 const roomHistory = new Map();
 
+const sharedMeeting = {
+    clubs: { A: "CLUB A", B: "CLUB B" }
+};
+
 function cloneState(state) {
     return JSON.parse(JSON.stringify(state));
+}
+
+function syncSharedClubs(sourceRoom) {
+    for (const [roomName, state] of rooms.entries()) {
+        if (roomName === sourceRoom) continue;
+
+        const next = {
+            ...state,
+            clubs: cloneState(sharedMeeting.clubs)
+        };
+
+        rooms.set(roomName, next);
+        io.to(roomName).emit("state", next);
+    }
 }
 
 function getDefaultState() {
@@ -21,11 +39,12 @@ function getDefaultState() {
         mode: "singles",
         roundName: "MATCH",
         bestOf: 5,
-        clubs: { A: "CLUB A", B: "CLUB B" },
+        clubs: cloneState(sharedMeeting.clubs),
         players: { A: "JOUEUR A", B: "JOUEUR B" },
         rankings: { A: "1", B: "2" },
         points: { A: 0, B: 0 },
         teamScore: { A: 0, B: 0 },
+        showTeamScore: true,
         sets: { A: 0, B: 0 },
         server: "A",
         setStartServer: "A",
@@ -79,9 +98,11 @@ function freshRoom(room) {
 function resetMatchState(state) {
     return {
         ...state,
+        clubs: cloneState(sharedMeeting.clubs),
         players: { A: "JOUEUR A", B: "JOUEUR B" },
         rankings: { A: "1", B: "2" },
         points: { A: 0, B: 0 },
+        showTeamScore: state.showTeamScore,
         sets: { A: 0, B: 0 },
         server: "A",
         setStartServer: "A",
@@ -151,13 +172,13 @@ function winSetIfNeeded(state, side) {
 }
 
 function logPoint(state, side) {
-    const server = state.server === "B" ? "B" : "A";
-    const onServe = side === server;
+    const serverSide = state.server === "B" ? "B" : "A";
+    const onServe = side === serverSide;
     const pointNumber = Number(state.points.A || 0) + Number(state.points.B || 0) + 1;
 
     state.pointLog.push({
         winner: side,
-        server,
+        server: serverSide,
         onServe,
         setIndex: Number(state.sets.A || 0) + Number(state.sets.B || 0) + 1,
         setsBefore: { A: state.sets.A, B: state.sets.B },
@@ -187,7 +208,17 @@ function applyAction(room, action, state) {
             state.mode = payload.mode === "doubles" ? "doubles" : "singles";
             state.roundName = String(payload.roundName || "MATCH").trim() || "MATCH";
             state.bestOf = Number.isFinite(Number(payload.bestOf)) ? Number(payload.bestOf) : 5;
-            state.clubs = { ...state.clubs, ...(payload.clubs || {}) };
+
+            if (payload.clubs) {
+                sharedMeeting.clubs = {
+                    ...sharedMeeting.clubs,
+                    ...payload.clubs
+                };
+
+                state.clubs = cloneState(sharedMeeting.clubs);
+                syncSharedClubs(room);
+            }
+
             state.players = { ...state.players, ...(payload.players || {}) };
             state.rankings = { ...state.rankings, ...(payload.rankings || {}) };
             return state;
@@ -217,6 +248,10 @@ function applyAction(room, action, state) {
 
         case "TEAM_POINT_B":
             state.teamScore.B += 1;
+            return state;
+
+        case "TOGGLE_TEAM_SCORE":
+            state.showTeamScore = state.showTeamScore === false;
             return state;
 
         case "TIMEOUT_START": {
@@ -266,6 +301,7 @@ io.on("connection", (socket) => {
         if (!action || !action.room || !action.type) return;
 
         const current = getRoomState(action.room);
+
         if (action.type === "UNDO") {
             const history = getRoomHistory(action.room);
             const previous = history.pop();
@@ -279,20 +315,26 @@ io.on("connection", (socket) => {
         const previous = cloneState(current);
         const next = applyAction(action.room, action, cloneState(current));
 
-        if (next !== current) {
-            pushHistory(action.room, previous);
-            emitRoomState(action.room, next);
-        }
+        pushHistory(action.room, previous);
+        emitRoomState(action.room, next);
     });
 
     socket.on("update-state", ({ room, patch }) => {
         if (!room || !patch) return;
 
         const current = getRoomState(room);
+
+        if (patch.clubs) {
+            sharedMeeting.clubs = {
+                ...sharedMeeting.clubs,
+                ...patch.clubs
+            };
+        }
+
         const next = {
             ...current,
             ...patch,
-            clubs: { ...current.clubs, ...(patch.clubs || {}) },
+            clubs: cloneState(sharedMeeting.clubs),
             players: { ...current.players, ...(patch.players || {}) },
             rankings: { ...current.rankings, ...(patch.rankings || {}) },
             points: { ...current.points, ...(patch.points || {}) },
@@ -303,6 +345,10 @@ io.on("connection", (socket) => {
 
         pushHistory(room, current);
         emitRoomState(room, next);
+
+        if (patch.clubs) {
+            syncSharedClubs(room);
+        }
     });
 
     socket.on("reset-room", (room) => {
