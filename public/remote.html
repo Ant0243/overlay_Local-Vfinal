@@ -21,13 +21,12 @@
       --yellow:#ffc107;
       --green:#a5ae58;
       --danger:#b00020;
+      --ok:#2e7d32;
       --radius:16px;
       --font:Inter,-apple-system,BlinkMacSystemFont,"Segoe UI",system-ui,sans-serif;
     }
 
-    *{
-      box-sizing:border-box;
-    }
+    *{ box-sizing:border-box; }
 
     body{
       margin:0;
@@ -40,6 +39,40 @@
       max-width:760px;
       margin:auto;
       padding:18px;
+    }
+
+    .tableSwitch{
+      display:grid;
+      grid-template-columns:1fr 1fr;
+      gap:10px;
+      margin-bottom:12px;
+    }
+
+    .tableBtn{
+      padding:14px;
+      border-radius:16px;
+      background:var(--panel);
+      text-align:center;
+      font-weight:950;
+      cursor:pointer;
+      border:2px solid transparent;
+      user-select:none;
+    }
+
+    .tableBtn.active{
+      background:linear-gradient(180deg,var(--accent),var(--accent-2));
+      border-color:rgba(255,255,255,.22);
+    }
+
+    .roomStatus{
+      margin-bottom:14px;
+      padding:10px 12px;
+      border-radius:14px;
+      background:#121a24;
+      color:var(--muted);
+      text-align:center;
+      font-size:13px;
+      font-weight:900;
     }
 
     .tabs{
@@ -60,17 +93,9 @@
       transition:.18s ease;
     }
 
-    .tab.active{
-      background:linear-gradient(180deg,var(--accent),var(--accent-2));
-    }
-
-    .page{
-      display:none;
-    }
-
-    .page.active{
-      display:block;
-    }
+    .tab.active{ background:linear-gradient(180deg,var(--accent),var(--accent-2)); }
+    .page{ display:none; }
+    .page.active{ display:block; }
 
     .inlineInfo{
       display:flex;
@@ -104,13 +129,8 @@
       border:1px solid rgba(255,255,255,.05);
     }
 
-    .card.flash{
-      animation:flash .25s ease;
-    }
-
-    @keyframes flash{
-      50%{ transform:scale(1.05); }
-    }
+    .card.flash{ animation:flash .25s ease; }
+    @keyframes flash{ 50%{ transform:scale(1.05); } }
 
     .teamLabel{
       font-size:12px;
@@ -171,16 +191,8 @@
       gap:10px;
     }
 
-    .stack{
-      display:grid;
-      gap:10px;
-    }
-
-    .row2{
-      display:grid;
-      grid-template-columns:1fr 1fr;
-      gap:10px;
-    }
+    .stack{ display:grid; gap:10px; }
+    .row2{ display:grid; grid-template-columns:1fr 1fr; gap:10px; }
 
     button{
       border:none;
@@ -194,54 +206,18 @@
       color:#fff;
     }
 
-    button:active{
-      transform:scale(.97);
-    }
+    button:active{ transform:scale(.97); }
+    button:disabled{ opacity:.45; cursor:not-allowed; }
 
-    button:disabled{
-      opacity:.45;
-      cursor:not-allowed;
-    }
-
-    .startBtn{
-      background:var(--green);
-      color:#12170a;
-    }
-
-    .btnA{
-      background:var(--red);
-    }
-
-    .btnB{
-      background:var(--blue);
-    }
-
-    .timeout{
-      background:var(--orange);
-      color:#231600;
-    }
-
-    .endTimeout{
-      background:var(--yellow);
-      color:#111;
-    }
-
-    .small{
-      font-size:15px;
-      padding:12px;
-      background:var(--panel-2);
-    }
-
-    .tiny{
-      font-size:13px;
-      padding:10px;
-      border-radius:12px;
-      background:#334255;
-    }
-
-    .danger{
-      background:var(--danger);
-    }
+    .startBtn{ background:var(--green); color:#12170a; }
+    .btnA{ background:var(--red); }
+    .btnB{ background:var(--blue); }
+    .timeout{ background:var(--orange); color:#231600; }
+    .endTimeout{ background:var(--yellow); color:#111; }
+    .small{ font-size:15px; padding:12px; background:var(--panel-2); }
+    .tiny{ font-size:13px; padding:10px; border-radius:12px; background:#334255; }
+    .danger{ background:var(--danger); }
+    .resume{ background:var(--ok); }
 
     label{
       display:block;
@@ -270,23 +246,54 @@
       line-height:1.45;
     }
 
-    @media (max-width: 640px){
-      .scoreGrid,
-      .btnGrid,
-      .row2{
-        grid-template-columns:1fr;
-      }
+    .hint{
+      color:var(--muted);
+      font-size:13px;
+      line-height:1.45;
+      margin-bottom:12px;
+      font-weight:700;
+    }
 
-      .wrapper{
-        padding:14px;
-      }
+    .radioGrid{
+      display:grid;
+      grid-template-columns:1fr 1fr;
+      gap:10px;
+    }
+
+    .radioBox{
+      display:flex;
+      gap:8px;
+      align-items:center;
+      justify-content:center;
+      padding:12px;
+      border-radius:14px;
+      background:#121a24;
+      color:#fff;
+      font-weight:900;
+    }
+
+    .radioBox input{ width:auto; }
+
+    @media (max-width: 640px){
+      .scoreGrid,.btnGrid,.row2{ grid-template-columns:1fr; }
+      .wrapper{ padding:14px; }
+      .tabs{ gap:7px; }
+      .tab{ font-size:13px; padding:12px 8px; }
     }
   </style>
 </head>
 <body>
 <div class="wrapper">
+  <div class="tableSwitch">
+    <div class="tableBtn active" data-room="table1">TABLE 1</div>
+    <div class="tableBtn" data-room="table2">TABLE 2</div>
+  </div>
+
+  <div class="roomStatus" id="roomStatus">Télécommande connectée à TABLE 1</div>
+
   <div class="tabs">
     <div class="tab active" data-page="match">Match</div>
+    <div class="tab" data-page="prepare">Préparer / reprendre</div>
     <div class="tab" data-page="settings">Clubs</div>
   </div>
 
@@ -351,6 +358,94 @@
       </div>
 
       <div class="status" id="status">Connexion…</div>
+    </div>
+  </div>
+
+  <div id="prepare" class="page">
+    <div class="section">
+      <div class="sectionTitle">Préparer / reprendre une table</div>
+      <div class="hint">
+        Pour la table 2 : entre les noms avant de basculer dessus, puis mets les sets, le score actuel et le joueur qui a servi en premier dans le set en cours.
+      </div>
+
+      <div class="row2">
+        <div>
+          <label for="resumeClubA">Club A</label>
+          <input id="resumeClubA" placeholder="Club A" />
+        </div>
+        <div>
+          <label for="resumeClubB">Club B</label>
+          <input id="resumeClubB" placeholder="Club B" />
+        </div>
+      </div>
+
+      <div class="row2">
+        <div>
+          <label for="resumeNameA">Joueur A</label>
+          <input id="resumeNameA" placeholder="Joueur A" />
+        </div>
+        <div>
+          <label for="resumeNameB">Joueur B</label>
+          <input id="resumeNameB" placeholder="Joueur B" />
+        </div>
+      </div>
+
+      <div class="row2">
+        <div>
+          <label for="resumeRankA">Classement A</label>
+          <input id="resumeRankA" placeholder="Ex: 12" />
+        </div>
+        <div>
+          <label for="resumeRankB">Classement B</label>
+          <input id="resumeRankB" placeholder="Ex: 8" />
+        </div>
+      </div>
+
+      <div class="row2">
+        <div>
+          <label for="resumeSetsA">Sets A</label>
+          <select id="resumeSetsA"></select>
+        </div>
+        <div>
+          <label for="resumeSetsB">Sets B</label>
+          <select id="resumeSetsB"></select>
+        </div>
+      </div>
+
+      <div class="row2">
+        <div>
+          <label for="resumePointsA">Score A</label>
+          <select id="resumePointsA"></select>
+        </div>
+        <div>
+          <label for="resumePointsB">Score B</label>
+          <select id="resumePointsB"></select>
+        </div>
+      </div>
+
+      <div class="row2">
+        <div>
+          <label for="resumeBestOf">Format</label>
+          <select id="resumeBestOf">
+            <option value="3">BO3</option>
+            <option value="5" selected>BO5</option>
+            <option value="7">BO7</option>
+          </select>
+        </div>
+        <div>
+          <label for="resumeRound">Nom de la rencontre</label>
+          <input id="resumeRound" placeholder="MATCH" />
+        </div>
+      </div>
+
+      <label>Qui a servi en premier dans ce set ?</label>
+      <div class="radioGrid">
+        <label class="radioBox"><input type="radio" name="resumeServe" value="A" checked> Joueur A</label>
+        <label class="radioBox"><input type="radio" name="resumeServe" value="B"> Joueur B</label>
+      </div>
+
+      <div style="height:10px"></div>
+      <button class="resume" id="resumeBtn">Reprendre ce score</button>
     </div>
   </div>
 
@@ -422,11 +517,28 @@
 
 <script src="/socket.io/socket.io.js"></script>
 <script>
-  const room = new URLSearchParams(location.search).get("room") || "table1";
+  const initialRoom = new URLSearchParams(location.search).get("room") || "table1";
   const socket = typeof io === "function" ? io() : null;
   const el = (id) => document.getElementById(id);
 
+  let currentRoom = initialRoom;
   let lastState = null;
+
+  function roomLabel(room){ return room === "table2" ? "TABLE 2" : "TABLE 1"; }
+
+  function setActiveRoom(room){
+    currentRoom = room === "table2" ? "table2" : "table1";
+    document.querySelectorAll(".tableBtn").forEach((btn) => {
+      btn.classList.toggle("active", btn.dataset.room === currentRoom);
+    });
+    el("roomStatus").textContent = "Télécommande connectée à " + roomLabel(currentRoom);
+    lastState = null;
+    if (socket && socket.connected) socket.emit("join", currentRoom);
+  }
+
+  document.querySelectorAll(".tableBtn").forEach((btn) => {
+    btn.addEventListener("click", () => setActiveRoom(btn.dataset.room));
+  });
 
   document.querySelectorAll(".tab").forEach((tab) => {
     tab.addEventListener("click", () => {
@@ -438,9 +550,31 @@
     });
   });
 
+  function fillSelect(id, max, selected = 0) {
+    const select = el(id);
+    select.innerHTML = "";
+    for (let i = 0; i <= max; i += 1) {
+      const option = document.createElement("option");
+      option.value = String(i);
+      option.textContent = String(i);
+      option.selected = i === selected;
+      select.appendChild(option);
+    }
+  }
+
+  fillSelect("resumeSetsA", 4, 0);
+  fillSelect("resumeSetsB", 4, 0);
+  fillSelect("resumePointsA", 40, 0);
+  fillSelect("resumePointsB", 40, 0);
+
   function safeSend(type, data = {}) {
     if (!socket || !socket.connected) return;
-    socket.emit("action", { room, type, ...data });
+    socket.emit("action", { room: currentRoom, type, ...data });
+  }
+
+  function updateStatePatch(patch = {}) {
+    if (!socket || !socket.connected) return;
+    socket.emit("update-state", { room: currentRoom, patch });
   }
 
   function flash(team) {
@@ -454,9 +588,12 @@
     return text || fallback;
   }
 
-  function getModeLabel(mode) {
-    return mode === "doubles" ? "DOUBLES" : "SIMPLE";
+  function safeInt(value, fallback = 0) {
+    const n = Number(value);
+    return Number.isFinite(n) ? Math.max(0, Math.floor(n)) : fallback;
   }
+
+  function getModeLabel(mode) { return mode === "doubles" ? "DOUBLES" : "SIMPLE"; }
 
   function getRank(st, side) {
     if (st.rankings && st.rankings[side] != null) return String(st.rankings[side]).replace(/^#/, "");
@@ -467,11 +604,7 @@
   function renderSub(st, side) {
     const mode = st.mode === "doubles" ? "doubles" : "singles";
     const rank = getRank(st, side);
-
-    if (mode === "doubles") {
-      return "Classement masqué en doubles";
-    }
-
+    if (mode === "doubles") return "Classement masqué en doubles";
     return rank ? `#${rank}` : "Sans classement";
   }
 
@@ -481,8 +614,20 @@
     return Number(st.sets?.A || 0) >= needed || Number(st.sets?.B || 0) >= needed;
   }
 
-  function updateStatus(text) {
-    el("status").textContent = text;
+  function updateStatus(text) { el("status").textContent = text; }
+
+  function computeServer(pointsA, pointsB, firstServer) {
+    const total = safeInt(pointsA) + safeInt(pointsB);
+    const first = firstServer === "B" ? "B" : "A";
+    const other = first === "A" ? "B" : "A";
+    if (total >= 20) return total % 2 === 0 ? first : other;
+    const block = Math.floor(total / 2);
+    return block % 2 === 0 ? first : other;
+  }
+
+  function selectedResumeServe() {
+    const checked = document.querySelector('input[name="resumeServe"]:checked');
+    return checked ? checked.value : "A";
   }
 
   function applySettings() {
@@ -507,6 +652,45 @@
     });
   }
 
+  function resumeScore() {
+    const pointsA = safeInt(el("resumePointsA").value);
+    const pointsB = safeInt(el("resumePointsB").value);
+    const firstServer = selectedResumeServe();
+    const server = computeServer(pointsA, pointsB, firstServer);
+
+    updateStatePatch({
+      mode: "singles",
+      roundName: safeText(el("resumeRound").value, "MATCH"),
+      bestOf: parseInt(el("resumeBestOf").value, 10) || 5,
+      clubs: {
+        A: safeText(el("resumeClubA").value, "CLUB A"),
+        B: safeText(el("resumeClubB").value, "CLUB B")
+      },
+      players: {
+        A: safeText(el("resumeNameA").value, "JOUEUR A"),
+        B: safeText(el("resumeNameB").value, "JOUEUR B")
+      },
+      rankings: {
+        A: safeText(el("resumeRankA").value, ""),
+        B: safeText(el("resumeRankB").value, "")
+      },
+      points: { A: pointsA, B: pointsB },
+      sets: {
+        A: safeInt(el("resumeSetsA").value),
+        B: safeInt(el("resumeSetsB").value)
+      },
+      server,
+      setStartServer: firstServer,
+      pointLog: [],
+      servePointsWon: { A: 0, B: 0 },
+      setHistory: [],
+      timeoutActive: false,
+      timeoutBy: null,
+      timeoutStartedAt: null,
+      timeoutUsed: { A: false, B: false }
+    });
+  }
+
   function bindActions(st) {
     const timeoutActive = Boolean(st.timeoutActive);
     const locked = isMatchLocked(st);
@@ -514,19 +698,11 @@
     el("btnA").disabled = timeoutActive || locked;
     el("btnB").disabled = timeoutActive || locked;
 
-    el("btnA").onclick = () => {
-      safeSend("POINT_A");
-      flash("A");
-    };
-
-    el("btnB").onclick = () => {
-      safeSend("POINT_B");
-      flash("B");
-    };
+    el("btnA").onclick = () => { safeSend("POINT_A"); flash("A"); };
+    el("btnB").onclick = () => { safeSend("POINT_B"); flash("B"); };
 
     el("btnTeamA").onclick = () => safeSend("TEAM_POINT_A");
     el("btnTeamB").onclick = () => safeSend("TEAM_POINT_B");
-
     el("toA").onclick = () => safeSend("TIMEOUT_START", { by: "A" });
     el("toB").onclick = () => safeSend("TIMEOUT_START", { by: "B" });
     el("endTimeout").onclick = () => safeSend("TIMEOUT_END");
@@ -536,16 +712,15 @@
 
     el("toA").disabled = timeoutActive || Boolean(st.timeoutUsed?.A);
     el("toB").disabled = timeoutActive || Boolean(st.timeoutUsed?.B);
-
     el("endTimeout").style.display = timeoutActive ? "block" : "none";
 
     const isFreshMatch =
-            Number(st.points?.A || 0) === 0 &&
-            Number(st.points?.B || 0) === 0 &&
-            Number(st.sets?.A || 0) === 0 &&
-            Number(st.sets?.B || 0) === 0;
+      Number(st.points?.A || 0) === 0 &&
+      Number(st.points?.B || 0) === 0 &&
+      Number(st.sets?.A || 0) === 0 &&
+      Number(st.sets?.B || 0) === 0;
 
-        el("startBtn").style.display = isFreshMatch && !locked ? "block" : "none";
+    el("startBtn").style.display = isFreshMatch && !locked ? "block" : "none";
 
     el("startBtn").onclick = () => {
       if (!lastState) {
@@ -555,17 +730,14 @@
 
       const nameA = safeText(st.players?.A, "JOUEUR A");
       const nameB = safeText(st.players?.B, "JOUEUR B");
-
-      const choice = prompt(
-              "Qui sert en premier ?\n\n1 = " + nameA + "\n2 = " + nameB
-      );
-
+      const choice = prompt("Qui sert en premier ?\n\n1 = " + nameA + "\n2 = " + nameB);
       if (choice === "1") safeSend("SET_SERVE", { serve: "A" });
       if (choice === "2") safeSend("SET_SERVE", { serve: "B" });
     };
   }
 
   function render(st) {
+    if (st.room && st.room !== currentRoom) return;
     lastState = st;
 
     const mode = st.mode === "doubles" ? "doubles" : "singles";
@@ -591,9 +763,7 @@
     el("pillBestOf").textContent = `BO${st.bestOf || 5}`;
     el("pillRound").textContent = safeText(st.roundName || st.round, "MATCH");
     el("pillServeur").textContent = `SERVICE: ${st.server || "-"}`;
-    el("pillTimeout").textContent = st.timeoutActive
-            ? `TIMEOUT: ${st.timeoutBy || "EN COURS"}`
-            : "TIMEOUT: NON";
+    el("pillTimeout").textContent = st.timeoutActive ? `TIMEOUT: ${st.timeoutBy || "EN COURS"}` : "TIMEOUT: NON";
     el("pillTeamA").textContent = `EQ A: ${st.teamScore?.A ?? 0}`;
     el("pillTeamB").textContent = `EQ B: ${st.teamScore?.B ?? 0}`;
 
@@ -607,29 +777,30 @@
     el("rankB").value = getRank(st, "B");
     el("bestOf").value = String(st.bestOf || 5);
 
-    bindActions(st);
+    el("resumeClubA").value = clubA;
+    el("resumeClubB").value = clubB;
+    el("resumeNameA").value = nameA;
+    el("resumeNameB").value = nameB;
+    el("resumeRankA").value = getRank(st, "A");
+    el("resumeRankB").value = getRank(st, "B");
+    el("resumeRound").value = safeText(st.roundName || st.round, "MATCH");
+    el("resumeBestOf").value = String(st.bestOf || 5);
+    el("resumeSetsA").value = String(st.sets?.A ?? 0);
+    el("resumeSetsB").value = String(st.sets?.B ?? 0);
+    el("resumePointsA").value = String(st.points?.A ?? 0);
+    el("resumePointsB").value = String(st.points?.B ?? 0);
 
-    updateStatus(
-            "Connecté • ← point A • → point B • 1 timeout A • 2 timeout B • T fin timeout • S service A • D service B • Entrée applique paramètres • ⌫ annuler • R reset"
-    );
+    bindActions(st);
+    updateStatus("Connecté • Télécommande sur " + roomLabel(currentRoom) + " • ← point A • → point B • ⌫ annuler • R reset");
   }
 
   function isTypingTarget(target) {
     if (!target) return false;
-
     const tag = (target.tagName || "").toUpperCase();
-
-    return (
-            tag === "INPUT" ||
-            tag === "TEXTAREA" ||
-            tag === "SELECT" ||
-            target.isContentEditable
-    );
+    return tag === "INPUT" || tag === "TEXTAREA" || tag === "SELECT" || target.isContentEditable;
   }
 
-  function confirmResetByShortcut() {
-    return window.confirm("Confirmer le reset du match ?");
-  }
+  function confirmResetByShortcut() { return window.confirm("Confirmer le reset du match ?"); }
 
   document.addEventListener("keydown", (event) => {
     if (isTypingTarget(event.target)) return;
@@ -640,131 +811,72 @@
     const locked = isMatchLocked(lastState);
 
     if (key === "ArrowLeft") {
-      if (!timeoutActive && !locked) {
-        event.preventDefault();
-        safeSend("POINT_A");
-        flash("A");
-      }
+      if (!timeoutActive && !locked) { event.preventDefault(); safeSend("POINT_A"); flash("A"); }
       return;
     }
 
     if (key === "ArrowRight") {
-      if (!timeoutActive && !locked) {
-        event.preventDefault();
-        safeSend("POINT_B");
-        flash("B");
-      }
+      if (!timeoutActive && !locked) { event.preventDefault(); safeSend("POINT_B"); flash("B"); }
       return;
     }
 
     if (key === "1") {
-      if (!timeoutActive && !lastState.timeoutUsed?.A) {
-        event.preventDefault();
-        safeSend("TIMEOUT_START", { by: "A" });
-      }
+      if (!timeoutActive && !lastState.timeoutUsed?.A) { event.preventDefault(); safeSend("TIMEOUT_START", { by: "A" }); }
       return;
     }
 
     if (key === "2") {
-      if (!timeoutActive && !lastState.timeoutUsed?.B) {
-        event.preventDefault();
-        safeSend("TIMEOUT_START", { by: "B" });
-      }
+      if (!timeoutActive && !lastState.timeoutUsed?.B) { event.preventDefault(); safeSend("TIMEOUT_START", { by: "B" }); }
       return;
     }
 
     if (key.toLowerCase() === "t") {
-      if (timeoutActive) {
-        event.preventDefault();
-        safeSend("TIMEOUT_END");
-      }
+      if (timeoutActive) { event.preventDefault(); safeSend("TIMEOUT_END"); }
       return;
     }
 
-    if (key.toLowerCase() === "s") {
-      event.preventDefault();
-      safeSend("SET_SERVE", { serve: "A" });
-      return;
-    }
+    if (key.toLowerCase() === "s") { event.preventDefault(); safeSend("SET_SERVE", { serve: "A" }); return; }
+    if (key.toLowerCase() === "d") { event.preventDefault(); safeSend("SET_SERVE", { serve: "B" }); return; }
+    if (key.toLowerCase() === "a") { event.preventDefault(); setActiveRoom("table1"); return; }
+    if (key.toLowerCase() === "z") { event.preventDefault(); setActiveRoom("table2"); return; }
 
-    if (key.toLowerCase() === "d") {
-      event.preventDefault();
-      safeSend("SET_SERVE", { serve: "B" });
-      return;
-    }
-
-    if (key === "Backspace") {
-      event.preventDefault();
-      safeSend("UNDO");
-      return;
-    }
+    if (key === "Backspace") { event.preventDefault(); safeSend("UNDO"); return; }
 
     if (key.toLowerCase() === "r") {
       event.preventDefault();
-      if (confirmResetByShortcut()) {
-        safeSend("RESET_MATCH");
-      }
+      if (confirmResetByShortcut()) safeSend("RESET_MATCH");
       return;
     }
 
     if (key === "Enter") {
       const activeElement = document.activeElement;
-      if (activeElement && activeElement.closest("#settings")) {
-        event.preventDefault();
-        applySettings();
-      }
-      return;
-    }
-
-    if (key === " ") {
-      const isFreshMatch =
-              Number(lastState.points?.A || 0) === 0 &&
-              Number(lastState.points?.B || 0) === 0 &&
-              Number(lastState.sets?.A || 0) === 0 &&
-              Number(lastState.sets?.B || 0) === 0;
-
-      if (isFreshMatch) {
-        event.preventDefault();
-
-        const nameA = safeText(lastState.players?.A, "JOUEUR A");
-        const nameB = safeText(lastState.players?.B, "JOUEUR B");
-
-        const choice = prompt(
-                "Qui sert en premier ?\n\n1 = " + nameA + "\n2 = " + nameB
-        );
-
-        if (choice === "1") safeSend("SET_SERVE", { serve: "A" });
-        if (choice === "2") safeSend("SET_SERVE", { serve: "B" });
-      }
+      if (activeElement && activeElement.closest("#settings")) { event.preventDefault(); applySettings(); }
     }
   });
 
   if (!socket) {
     if (location.protocol === "file:") {
-      updateStatus("Page ouverte en local (file://). Ouvre plutot: http://localhost:3000/remote.html?room=table1");
+      updateStatus("Page ouverte en local (file://). Ouvre plutot: http://localhost:3000/remote.html");
     } else {
       updateStatus("Socket.IO indisponible. Verifie que le serveur est lance avec: node server.js");
     }
   } else {
     socket.on("connect", () => {
-      socket.emit("join", room);
+      socket.emit("join", currentRoom);
       updateStatus("Connecté au serveur local");
     });
 
     socket.on("connect_error", () => {
-      updateStatus("Connexion impossible. Verifie: http://localhost:3000/remote.html?room=table1");
+      updateStatus("Connexion impossible. Verifie: http://localhost:3000/remote.html");
     });
 
-    socket.on("disconnect", () => {
-      updateStatus("Déconnecté");
-    });
-
-    socket.on("state", (st) => {
-      render(st);
-    });
+    socket.on("disconnect", () => { updateStatus("Déconnecté"); });
+    socket.on("state", (st) => { render(st); });
   }
 
   el("applyBtn").addEventListener("click", applySettings);
+  el("resumeBtn").addEventListener("click", resumeScore);
+  setActiveRoom(initialRoom);
 </script>
 </body>
 </html>
