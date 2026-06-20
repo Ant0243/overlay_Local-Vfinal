@@ -1,788 +1,97 @@
-<!-- /public/stats.html -->
 <!DOCTYPE html>
 <html lang="fr">
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>TT Stats Local</title>
+  <title>Stats Table 1</title>
+  <script src="/socket.io/socket.io.js"></script>
   <style>
-    :root{
-      --bg:#0d1117;
-      --panel:#151b25;
-      --panel-2:#1d2532;
-      --text:#f4f7fb;
-      --muted:rgba(244,247,251,.72);
-      --accent:#4ea1ff;
-      --accent-2:#7f5cff;
-      --good:#39d98a;
-      --warn:#ffcc66;
-      --danger:#ff6b81;
-      --shadow:0 20px 50px rgba(0,0,0,.4);
-      --font:Inter,-apple-system,BlinkMacSystemFont,"Segoe UI",system-ui,sans-serif;
-    }
-
-    *{ box-sizing:border-box; }
-
-    body{
-      margin:0;
-      min-height:100vh;
-      background:
-        radial-gradient(circle at top left, rgba(78,161,255,.24), transparent 28%),
-        radial-gradient(circle at bottom right, rgba(127,92,255,.20), transparent 26%),
-        linear-gradient(180deg, #0a0e14, #0d1117 35%, #0a0e14 100%);
-      color:var(--text);
-      font-family:var(--font);
-    }
-
-    .wrap{
-      max-width:1200px;
-      margin:0 auto;
-      padding:24px;
-    }
-
-    .hero{
-      display:flex;
-      justify-content:space-between;
-      align-items:flex-end;
-      gap:16px;
-      margin-bottom:18px;
-    }
-
-    .title{
-      font-size:38px;
-      line-height:1;
-      font-weight:1000;
-      letter-spacing:-.03em;
-      margin:0;
-    }
-
-    .subtitle{
-      margin-top:8px;
-      color:var(--muted);
-      font-size:14px;
-      font-weight:700;
-    }
-
-    .pill{
-      display:inline-flex;
-      align-items:center;
-      gap:8px;
-      padding:10px 14px;
-      border-radius:999px;
-      background:rgba(255,255,255,.05);
-      border:1px solid rgba(255,255,255,.08);
-      color:var(--muted);
-      font-size:12px;
-      font-weight:900;
-      letter-spacing:.08em;
-      text-transform:uppercase;
-    }
-
-    .grid{
-      display:grid;
-      grid-template-columns:repeat(4, minmax(0, 1fr));
-      gap:14px;
-      margin-bottom:18px;
-    }
-
-    .card{
-      background:linear-gradient(180deg, rgba(21,27,37,.98), rgba(17,23,32,.98));
-      border:1px solid rgba(255,255,255,.08);
-      border-radius:22px;
-      padding:18px;
-      box-shadow:var(--shadow);
-    }
-
-    .heroBoard{
-      display:grid;
-      grid-template-columns:1fr 1fr;
-      gap:14px;
-      margin-bottom:18px;
-    }
-
-    .teamPanel{
-      display:grid;
-      grid-template-columns:auto 1fr auto;
-      align-items:center;
-      gap:14px;
-      min-width:0;
-      padding:18px;
-      border-radius:22px;
-      background:linear-gradient(180deg, rgba(21,27,37,.98), rgba(17,23,32,.98));
-      border:1px solid rgba(255,255,255,.08);
-      box-shadow:var(--shadow);
-    }
-
-    .clubLogo{
-      width:58px;
-      height:58px;
-      border-radius:18px;
-      display:grid;
-      place-items:center;
-      background:linear-gradient(135deg, rgba(78,161,255,.28), rgba(127,92,255,.28));
-      border:1px solid rgba(255,255,255,.12);
-      font-size:18px;
-      font-weight:1000;
-      letter-spacing:.06em;
-      text-transform:uppercase;
-      color:#fff;
-    }
-
-    .clubLogo.alt{
-      background:linear-gradient(135deg, rgba(57,217,138,.26), rgba(255,204,102,.20));
-    }
-
-    .teamText{
-      min-width:0;
-    }
-
-    .clubName{
-      font-size:22px;
-      font-weight:1000;
-      line-height:1.1;
-      margin-bottom:6px;
-      text-overflow:ellipsis;
-      overflow:hidden;
-      white-space:nowrap;
-    }
-
-    .playerName{
-      font-size:16px;
-      font-weight:900;
-      color:var(--muted);
-      text-overflow:ellipsis;
-      overflow:hidden;
-      white-space:nowrap;
-    }
-
-    .playerMeta{
-      display:flex;
-      flex-wrap:wrap;
-      gap:8px;
-      margin-top:10px;
-    }
-
-    .tinyPill{
-      padding:6px 10px;
-      border-radius:999px;
-      background:rgba(255,255,255,.05);
-      border:1px solid rgba(255,255,255,.08);
-      color:var(--muted);
-      font-size:11px;
-      font-weight:900;
-      letter-spacing:.08em;
-      text-transform:uppercase;
-    }
-
-    .flagStack{
-      display:grid;
-      gap:8px;
-      justify-items:end;
-    }
-
-    .arrowBox{
-      display:inline-flex;
-      align-items:center;
-      justify-content:center;
-      min-width:42px;
-      min-height:42px;
-      border-radius:14px;
-      background:rgba(255,255,255,.05);
-      border:1px solid rgba(255,255,255,.08);
-      font-size:22px;
-      font-weight:1000;
-    }
-
-    .arrowBox.active{
-      color:var(--good);
-      background:rgba(57,217,138,.12);
-    }
-
-    .timeoutBadge{
-      display:inline-flex;
-      align-items:center;
-      gap:8px;
-      padding:7px 10px;
-      border-radius:999px;
-      background:rgba(255,255,255,.05);
-      border:1px solid rgba(255,255,255,.08);
-      font-size:11px;
-      font-weight:1000;
-      letter-spacing:.08em;
-      text-transform:uppercase;
-      color:var(--muted);
-    }
-
-    .timeoutBadge.on{
-      color:var(--warn);
-      background:rgba(255,204,102,.12);
-    }
-
-    .metricTitle{
-      color:var(--muted);
-      font-size:12px;
-      font-weight:900;
-      letter-spacing:.1em;
-      text-transform:uppercase;
-      margin-bottom:8px;
-    }
-
-    .metricValue{
-      font-size:28px;
-      font-weight:1000;
-      line-height:1.05;
-    }
-
-    .metricValue.smaller{
-      font-size:20px;
-    }
-
-    .statsGrid{
-      display:grid;
-      grid-template-columns:repeat(3, minmax(0, 1fr));
-      gap:14px;
-      margin-bottom:18px;
-    }
-
-    .stackCard{
-      display:grid;
-      gap:10px;
-    }
-
-    .dualLine{
-      display:flex;
-      justify-content:space-between;
-      gap:10px;
-      align-items:baseline;
-      font-size:14px;
-      font-weight:900;
-      color:var(--muted);
-    }
-
-    .dualLine strong{ color:var(--text); }
-
-    .timeline{
-      display:grid;
-      gap:10px;
-      max-height:420px;
-      overflow:auto;
-      padding-right:4px;
-    }
-
-    .timelineItem{
-      display:grid;
-      grid-template-columns:auto 1fr auto;
-      gap:10px;
-      align-items:center;
-      padding:12px 14px;
-      border-radius:16px;
-      background:rgba(255,255,255,.04);
-      border:1px solid rgba(255,255,255,.05);
-    }
-
-    .timelineScore{
-      font-size:14px;
-      font-weight:1000;
-      color:#fff;
-      font-variant-numeric:tabular-nums;
-    }
-
-    .timelineMeta{
-      display:grid;
-      gap:4px;
-      min-width:0;
-    }
-
-    .timelineMeta .main{
-      font-size:13px;
-      font-weight:900;
-    }
-
-    .timelineMeta .sub{
-      font-size:12px;
-      color:var(--muted);
-      margin:0;
-    }
-
-    .setList{
-      display:grid;
-      gap:10px;
-    }
-
-    .setRow{
-      display:grid;
-      grid-template-columns:auto 1fr auto;
-      gap:10px;
-      align-items:center;
-      padding:12px 14px;
-      border-radius:16px;
-      background:rgba(255,255,255,.04);
-      border:1px solid rgba(255,255,255,.05);
-    }
-
-    .setIndex{
-      width:36px;
-      height:36px;
-      border-radius:12px;
-      display:grid;
-      place-items:center;
-      background:rgba(255,255,255,.06);
-      font-weight:1000;
-    }
-
-    .setScore{
-      font-size:18px;
-      font-weight:1000;
-    }
-
-    .setMeta{
-      color:var(--muted);
-      font-size:12px;
-      font-weight:800;
-    }
-
-    .detailGrid{
-      display:grid;
-      grid-template-columns:repeat(2, minmax(0, 1fr));
-      gap:14px;
-      margin-bottom:18px;
-    }
-
-    .bulletList{
-      display:grid;
-      gap:10px;
-    }
-
-    .bulletRow{
-      display:flex;
-      justify-content:space-between;
-      gap:10px;
-      align-items:center;
-      padding:10px 12px;
-      border-radius:14px;
-      background:rgba(255,255,255,.04);
-      border:1px solid rgba(255,255,255,.05);
-      font-size:13px;
-      font-weight:800;
-    }
-
-    .bulletRow .mutedSmall{ color:var(--muted); font-weight:700; }
-
-    .percent{
-      font-size:26px;
-      font-weight:1000;
-    }
-
-    .percent.good{ color:var(--good); }
-
-    .empty{
-      color:var(--muted);
-      font-size:13px;
-      font-weight:700;
-      padding:10px 0;
-    }
-
-    .label{
-      color:var(--muted);
-      font-size:12px;
-      font-weight:900;
-      letter-spacing:.1em;
-      text-transform:uppercase;
-      margin-bottom:10px;
-    }
-
-    .value{
-      font-size:34px;
-      font-weight:1000;
-      line-height:1;
-    }
-
-    .value.good{ color:var(--good); }
-    .value.warn{ color:var(--warn); }
-
-    .split{
-      display:grid;
-      grid-template-columns:1fr 1fr;
-      gap:14px;
-      margin-bottom:18px;
-    }
-
-    .sectionTitle{
-      font-size:16px;
-      font-weight:1000;
-      margin:0 0 12px;
-      letter-spacing:-.01em;
-    }
-
-    .list{
-      display:grid;
-      gap:10px;
-    }
-
-    .row{
-      display:grid;
-      grid-template-columns:1fr auto auto;
-      align-items:center;
-      gap:10px;
-      padding:12px 14px;
-      border-radius:16px;
-      background:rgba(255,255,255,.04);
-      border:1px solid rgba(255,255,255,.05);
-    }
-
-    .row .meta{
-      color:var(--muted);
-      font-size:12px;
-      font-weight:800;
-    }
-
-    .row .score{
-      font-size:18px;
-      font-weight:1000;
-    }
-
-    .badge{
-      padding:6px 10px;
-      border-radius:999px;
-      font-size:11px;
-      font-weight:1000;
-      text-transform:uppercase;
-      letter-spacing:.08em;
-      background:rgba(255,255,255,.06);
-    }
-
-    .badge.onserve{ background:rgba(57,217,138,.14); color:var(--good); }
-    .badge.offserve{ background:rgba(255,107,129,.14); color:var(--danger); }
-
-    .recent{
-      display:grid;
-      gap:8px;
-    }
-
-    .recentItem{
-      display:grid;
-      grid-template-columns:auto 1fr auto;
-      gap:10px;
-      align-items:center;
-      padding:10px 12px;
-      border-radius:14px;
-      background:rgba(255,255,255,.04);
-      border:1px solid rgba(255,255,255,.05);
-      font-size:13px;
-      font-weight:800;
-    }
-
-    .muted{ color:var(--muted); }
-
-    @media (max-width: 960px){
-      .grid,
-      .split{
-        grid-template-columns:1fr 1fr;
-      }
-    }
-
-    @media (max-width: 640px){
-      .wrap{ padding:16px; }
-      .hero{ flex-direction:column; align-items:flex-start; }
-      .grid,
-      .split{
-        grid-template-columns:1fr;
-      }
-      .row{
-        grid-template-columns:1fr;
-        justify-items:start;
-      }
-      .recentItem{
-        grid-template-columns:1fr;
-      }
-    }
+    :root { --blue:#1148ff; --pink:#ff2b6f; --bg:#07152c; --muted:#aab4c8; }
+    * { box-sizing: border-box; }
+    html, body { margin:0; width:100%; height:100%; background:transparent; overflow:hidden; font-family: Arial, Helvetica, sans-serif; }
+    body { display:flex; align-items:center; justify-content:center; }
+    #card { width:88vw; max-width:1450px; padding:54px 58px 48px; border-radius:10px; background:rgba(4,18,42,.96); color:white; opacity:0; transform:scale(.96); transition:opacity .45s ease, transform .45s ease; box-shadow:0 24px 70px rgba(0,0,0,.45); }
+    #card.show { opacity:1; transform:scale(1); }
+    .title { font-size:46px; letter-spacing:10px; font-weight:900; margin-bottom:46px; text-align:center; }
+    .heads { display:grid; grid-template-columns:1fr 120px 1fr; align-items:center; gap:24px; margin-bottom:26px; }
+    .side.right { text-align:right; }
+    .club { color:var(--muted); font-size:21px; letter-spacing:2px; font-weight:800; margin-bottom:10px; }
+    .name { font-size:34px; font-weight:900; }
+    .vs { text-align:center; color:var(--muted); font-size:23px; font-weight:900; }
+    .row { display:grid; grid-template-columns:90px 1fr 90px; gap:24px; align-items:center; margin:27px 0; }
+    .num { font-size:38px; font-weight:900; }
+    .num.right { text-align:right; }
+    .label { text-align:center; color:var(--muted); font-size:22px; letter-spacing:3px; font-weight:900; margin-bottom:12px; }
+    .bar { height:22px; border-radius:20px; display:grid; grid-template-columns:1fr 1fr; overflow:hidden; background:rgba(255,255,255,.13); }
+    .b { height:100%; }
+    .a { background:var(--blue); justify-self:end; }
+    .bb { background:var(--pink); }
   </style>
 </head>
 <body>
-  <div class="wrap">
-    <div class="hero">
-      <div>
-        <h1 class="title">Stats Match</h1>
-        <div class="subtitle" id="subtitle">Chargement des données...</div>
-        <div class="playerMeta">
-          <span class="pill" id="roomPill">room: table1</span>
-          <span class="pill" id="serverPill">Serveur: -</span>
-          <span class="pill" id="firstServerPill">Premier serveur: -</span>
-          <span class="pill" id="timeoutPill">Temps mort: NON</span>
-        </div>
-      </div>
-      <div class="pill" id="scorePill">Score live: 0 - 0</div>
+  <div id="card">
+    <div class="title">STATISTIQUES DU MATCH</div>
+    <div class="heads">
+      <div class="side"><div class="club" id="clubA">CLUB A</div><div class="name" id="nameA">JOUEUR A</div></div>
+      <div class="vs">VS</div>
+      <div class="side right"><div class="club" id="clubB">CLUB B</div><div class="name" id="nameB">JOUEUR B</div></div>
     </div>
-
-    <div class="heroBoard">
-      <div class="card">
-        <div class="metricTitle">Club A</div>
-        <div class="metricValue" id="clubAName">CLUB A</div>
-        <div class="subtitle" id="playerAName">JOUEUR A</div>
-      </div>
-      <div class="card">
-        <div class="metricTitle">Club B</div>
-        <div class="metricValue" id="clubBName">CLUB B</div>
-        <div class="subtitle" id="playerBName">JOUEUR B</div>
-      </div>
-    </div>
-
-    <div class="heroBoard">
-      <div class="teamPanel">
-        <div class="clubLogo" id="logoA">CA</div>
-        <div class="teamText">
-          <div class="clubName" id="clubAFull">CLUB A</div>
-          <div class="playerName" id="playerAFull">JOUEUR A</div>
-          <div class="playerMeta">
-            <span class="tinyPill" id="rankA">#1</span>
-            <span class="tinyPill" id="setsA">Sets: 0</span>
-            <span class="tinyPill" id="scoreA">Pts: 0</span>
-          </div>
-        </div>
-        <div class="flagStack">
-          <div class="arrowBox" id="arrowA">→</div>
-          <div class="timeoutBadge" id="timeoutA">🕒 timeout</div>
-        </div>
-      </div>
-
-      <div class="teamPanel">
-        <div class="clubLogo alt" id="logoB">CB</div>
-        <div class="teamText">
-          <div class="clubName" id="clubBFull">CLUB B</div>
-          <div class="playerName" id="playerBFull">JOUEUR B</div>
-          <div class="playerMeta">
-            <span class="tinyPill" id="rankB">#2</span>
-            <span class="tinyPill" id="setsB">Sets: 0</span>
-            <span class="tinyPill" id="scoreB">Pts: 0</span>
-          </div>
-        </div>
-        <div class="flagStack">
-          <div class="arrowBox" id="arrowB">→</div>
-          <div class="timeoutBadge" id="timeoutB">🕒 timeout</div>
-        </div>
-      </div>
-    </div>
-
-    <div class="statsGrid">
-      <div class="card stackCard">
-        <div class="metricTitle">Série en cours</div>
-        <div class="metricValue" id="currentRun">-</div>
-        <div class="dualLine"><span>Meilleur run</span><strong id="bestRun">-</strong></div>
-      </div>
-      <div class="card stackCard">
-        <div class="metricTitle">Sets serrés</div>
-        <div class="metricValue" id="closeSets">0</div>
-        <div class="dualLine"><span>Inversion automatique</span><strong>oui</strong></div>
-      </div>
-      <div class="card stackCard">
-        <div class="metricTitle">Balles sauvées</div>
-        <div class="metricValue" id="savedBalls">0</div>
-        <div class="dualLine"><span>Set / Match</span><strong id="savedBallsDetail">0 / 0</strong></div>
-      </div>
-    </div>
-
-    <div class="detailGrid">
-      <div class="card">
-        <h2 class="sectionTitle">Détail des sets précédents</h2>
-        <div class="setList" id="setList"></div>
-      </div>
-      <div class="card">
-        <h2 class="sectionTitle">Évolution du score du match</h2>
-        <div class="timeline" id="timeline"></div>
-      </div>
-    </div>
-
-    <div class="detailGrid">
-      <div class="card">
-        <h2 class="sectionTitle">Service / Réception</h2>
-        <div class="bulletList" id="serveList"></div>
-      </div>
-      <div class="card">
-        <h2 class="sectionTitle">Efficiences & stats pro</h2>
-        <div class="bulletList" id="proList"></div>
-      </div>
-    </div>
-
-    <div class="card">
-      <h2 class="sectionTitle">Balle de set / balle de match</h2>
-      <div class="bulletList" id="pressureList"></div>
-    </div>
+    <div id="rows"></div>
   </div>
-
-  <script src="/socket.io/socket.io.js"></script>
-  <script>
-    const room = new URLSearchParams(location.search).get("room") || "table1";
-    const socket = typeof io === "function" ? io() : null;
-
-    const el = (id) => document.getElementById(id);
-
-    function initials(name) {
-      const text = String(name || "").trim();
-      if (!text) return "?";
-      return text
-        .split(/\s+/)
-        .filter(Boolean)
-        .slice(0, 2)
-        .map((part) => part[0])
-        .join("")
-        .toUpperCase();
-    }
-
-    function percentText(value) {
-      return `${Math.round(Number(value) || 0)}%`;
-    }
-
-    function safeSetText(id, value) {
-      const node = el(id);
-      if (node) node.textContent = value;
-    }
-
-    function render(stats) {
-      const overall = stats.overall || { total: 0, pointsWon: { A: 0, B: 0 }, onServeWon: { A: 0, B: 0 }, onReceiveWon: { A: 0, B: 0 }, serveAttempts: { A: 0, B: 0 } };
-      const last16 = stats.last16 || { total: 0, pointsWon: { A: 0, B: 0 }, onServeWon: { A: 0, B: 0 }, onReceiveWon: { A: 0, B: 0 }, serveAttempts: { A: 0, B: 0 } };
-      const recentPoints = Array.isArray(stats.recentPoints) ? stats.recentPoints : [];
-      const setHistory = Array.isArray(stats.setHistory) ? stats.setHistory : [];
-      const setPointTimeline = Array.isArray(stats.setPointTimeline) ? stats.setPointTimeline : [];
-      const state = stats.roomState || {};
-      const efficiency = stats.efficiency || { serve: { A: 0, B: 0 }, receive: { A: 0, B: 0 } };
-      const savedPoints = stats.savedPoints || { setPoints: { A: 0, B: 0 }, matchPoints: { A: 0, B: 0 } };
-      const streaks = stats.streaks || { current: { winner: null, length: 0 }, best: { winner: null, length: 0 } };
-      const closeSets = Array.isArray(stats.closeSets) ? stats.closeSets : [];
-
-      const clubA = state.clubs?.A || "CLUB A";
-      const clubB = state.clubs?.B || "CLUB B";
-      const playerA = state.players?.A || "JOUEUR A";
-      const playerB = state.players?.B || "JOUEUR B";
-      const rankA = state.rankings?.A || "1";
-      const rankB = state.rankings?.B || "2";
-      const scoreA = Number(state.points?.A || 0);
-      const scoreB = Number(state.points?.B || 0);
-      const setsA = Number(state.sets?.A || 0);
-      const setsB = Number(state.sets?.B || 0);
-
-      el("subtitle").textContent = `${clubA} vs ${clubB}`;
-      el("roomPill").textContent = `room: ${room}`;
-      el("roomPill").textContent = `room: ${room}`;
-      el("scorePill").textContent = `Score live: ${scoreA} - ${scoreB}`;
-      el("serverPill").textContent = `Serveur: ${state.server || "-"}`;
-      el("firstServerPill").textContent = `Premier serveur: ${state.setStartServer || "-"}`;
-      el("timeoutPill").textContent = state.timeoutActive ? `Temps mort: ${state.timeoutBy || "EN COURS"}` : "Temps mort: NON";
-
-      safeSetText("clubAName", clubA);
-      safeSetText("clubBName", clubB);
-      safeSetText("clubAFull", clubA);
-      safeSetText("clubBFull", clubB);
-      safeSetText("playerAName", playerA);
-      safeSetText("playerBName", playerB);
-      safeSetText("playerAFull", playerA);
-      safeSetText("playerBFull", playerB);
-      safeSetText("rankA", `#${String(rankA).replace(/^#/, "")}`);
-      safeSetText("rankB", `#${String(rankB).replace(/^#/, "")}`);
-      safeSetText("scoreA", `Pts: ${scoreA}`);
-      safeSetText("scoreB", `Pts: ${scoreB}`);
-      safeSetText("setsA", `Sets: ${setsA}`);
-      safeSetText("setsB", `Sets: ${setsB}`);
-      safeSetText("logoA", initials(clubA));
-      safeSetText("logoB", initials(clubB));
-
-      el("arrowA").classList.toggle("active", state.server === "A");
-      el("arrowB").classList.toggle("active", state.server === "B");
-      el("timeoutA").classList.toggle("on", Boolean(state.timeoutUsed?.A));
-      el("timeoutB").classList.toggle("on", Boolean(state.timeoutUsed?.B));
-
-      el("currentRun").textContent = streaks.current.length ? `+${streaks.current.length} ${streaks.current.winner === 'A' ? 'A' : 'B'}` : "-";
-      el("bestRun").textContent = streaks.best.length ? `+${streaks.best.length} ${streaks.best.winner === 'A' ? 'A' : 'B'}` : "-";
-      el("closeSets").textContent = String(closeSets.length);
-
-      const savedTotalA = (savedPoints.setPoints?.A ?? 0) + (savedPoints.matchPoints?.A ?? 0);
-      const savedTotalB = (savedPoints.setPoints?.B ?? 0) + (savedPoints.matchPoints?.B ?? 0);
-      el("savedBalls").textContent = String(savedTotalA + savedTotalB);
-      el("savedBallsDetail").textContent = `${savedPoints.setPoints?.A ?? 0}/${savedPoints.setPoints?.B ?? 0} set | ${savedPoints.matchPoints?.A ?? 0}/${savedPoints.matchPoints?.B ?? 0} match`;
-
-      el("serveList").innerHTML = `
-        <div class="bulletRow"><span>Points gagnés sur service A</span><span class="mutedSmall">${stats.servePointsWon?.A ?? 0}</span></div>
-        <div class="bulletRow"><span>Points gagnés sur service B</span><span class="mutedSmall">${stats.servePointsWon?.B ?? 0}</span></div>
-        <div class="bulletRow"><span>Points gagnés sur remise A</span><span class="mutedSmall">${overall.onReceiveWon?.A ?? 0}</span></div>
-        <div class="bulletRow"><span>Points gagnés sur remise B</span><span class="mutedSmall">${overall.onReceiveWon?.B ?? 0}</span></div>
-      `;
-
-      el("proList").innerHTML = `
-        <div class="bulletRow"><span>Efficacité au service A</span><strong class="percent good">${percentText(efficiency.serve?.A)}</strong></div>
-        <div class="bulletRow"><span>Efficacité au service B</span><strong class="percent good">${percentText(efficiency.serve?.B)}</strong></div>
-        <div class="bulletRow"><span>Efficacité en réception A</span><strong class="percent">${percentText(efficiency.receive?.A)}</strong></div>
-        <div class="bulletRow"><span>Efficacité en réception B</span><strong class="percent">${percentText(efficiency.receive?.B)}</strong></div>
-        <div class="bulletRow"><span>Balles de set sauvées A</span><strong>${savedPoints.setPoints?.A ?? 0}</strong></div>
-        <div class="bulletRow"><span>Balles de set sauvées B</span><strong>${savedPoints.setPoints?.B ?? 0}</strong></div>
-        <div class="bulletRow"><span>Balles de match sauvées A</span><strong>${savedPoints.matchPoints?.A ?? 0}</strong></div>
-        <div class="bulletRow"><span>Balles de match sauvées B</span><strong>${savedPoints.matchPoints?.B ?? 0}</strong></div>
-      `;
-
-      el("pressureList").innerHTML = `
-        <div class="bulletRow"><span>Balle de set / match actuelle</span><span class="mutedSmall">Gérée en live via le score</span></div>
-        <div class="bulletRow"><span>Premier serveur défini</span><strong>${state.setStartServer || '-'}</strong></div>
-        <div class="bulletRow"><span>Inversion auto à chaque set</span><strong>Oui</strong></div>
-        <div class="bulletRow"><span>Temps mort pris</span><strong>${state.timeoutActive ? `Oui (${state.timeoutBy || 'EN COURS'})` : 'Non'}</strong></div>
-      `;
-
-      el("setList").innerHTML = setHistory.length
-        ? setHistory.slice().reverse().map((set, index) => {
-            const setNumber = setHistory.length - index;
-            const scoreASet = Number(set.score?.A || 0);
-            const scoreBSet = Number(set.score?.B || 0);
-            const firstServer = set.firstServer || "-";
-            return `
-              <div class="setRow">
-                <div class="setIndex">${setNumber}</div>
-                <div>
-                  <div class="setScore">${scoreASet} - ${scoreBSet}</div>
-                  <div class="setMeta">Gagné par ${set.winner === 'A' ? clubA : clubB} | premier serveur ${firstServer}</div>
-                </div>
-                <div class="badge">${Math.abs(scoreASet - scoreBSet) <= 2 ? 'serré' : 'net'}</div>
-              </div>
-            `;
-          }).join("")
-        : '<div class="empty">Aucun set enregistré pour le moment.</div>';
-
-      el("timeline").innerHTML = setPointTimeline.length
-        ? setPointTimeline.slice(-16).reverse().map((point, index) => {
-            const before = point.setScoreBefore || { A: 0, B: 0 };
-            const after = point.scoreAfter || { A: 0, B: 0 };
-            const pointNo = point.setIndex || (setPointTimeline.length - index);
-            const flags = [point.onServe ? 'service' : 'retour'];
-            if (point.savedSetPoint) flags.push('set sauvée');
-            if (point.savedMatchPoint) flags.push('match sauvée');
-            return `
-              <div class="timelineItem">
-                <div class="timelineScore">${before.A}-${before.B} → ${after.A}-${after.B}</div>
-                <div class="timelineMeta">
-                  <div class="main">Point ${pointNo} gagné par ${point.winner === 'A' ? clubA : clubB}</div>
-                  <div class="sub">Serveur ${point.server} | ${flags.join(' • ')}</div>
-                </div>
-                <div class="muted">${new Date(point.at).toLocaleTimeString()}</div>
-              </div>
-            `;
-          }).join("")
-        : '<div class="empty">Aucun point enregistré pour le moment.</div>';
-
-      el("recentList")?.remove?.();
-    }
-
-    if (!socket) {
-      el("subtitle").textContent = "Socket.IO indisponible. Lance le serveur local.";
-    } else {
-      socket.on("connect", () => {
-        socket.emit("join", room);
-        socket.emit("get-stats", room);
-      });
-
-      socket.on("state", () => {
-        socket.emit("get-stats", room);
-      });
-
-      socket.on("stats", (stats) => {
-        render(stats);
-      });
-    }
-  </script>
+<script>
+const room = new URLSearchParams(location.search).get("room") || "table1";
+const socket = io();
+socket.emit("join", room);
+let previousTotal = 0;
+let previousSetsPlayed = 0;
+let hideTimer = null;
+function n(v){ return Number(v || 0); }
+function computeStats(state){
+  const log = Array.isArray(state.pointLog) ? state.pointLog : [];
+  const points = { A:0, B:0 }, serve = { A:0, B:0 }, receive = { A:0, B:0 }, bestStreak = { A:0, B:0 }, maxGap = { A:0, B:0 };
+  let currentWinner = null, currentLen = 0;
+  for (const p of log) {
+    const w = p.winner === "B" ? "B" : "A";
+    points[w]++;
+    if (p.onServe) serve[w]++; else receive[w]++;
+    if (w === currentWinner) currentLen++; else { currentWinner = w; currentLen = 1; }
+    bestStreak[w] = Math.max(bestStreak[w], currentLen);
+    const s = p.scoreAfter || {};
+    const diff = n(s.A) - n(s.B);
+    if (diff > maxGap.A) maxGap.A = diff;
+    if (-diff > maxGap.B) maxGap.B = -diff;
+  }
+  return [["POINTS GAGNÉS", points.A, points.B], ["AU SERVICE", serve.A, serve.B], ["SUR RELANCE", receive.A, receive.B], ["PLUS LONGUE SÉRIE", bestStreak.A, bestStreak.B], ["PLUS GROS ÉCART", maxGap.A, maxGap.B]];
+}
+function row(label, a, b){
+  const total = Math.max(1, a + b);
+  const pctA = Math.max(0, Math.min(100, (a / total) * 100));
+  const pctB = Math.max(0, Math.min(100, (b / total) * 100));
+  return `<div class="row"><div class="num">${a}</div><div><div class="label">${label}</div><div class="bar"><div class="b a" style="width:${pctA*2}%"></div><div class="b bb" style="width:${pctB*2}%"></div></div></div><div class="num right">${b}</div></div>`;
+}
+function render(state){
+  document.getElementById("clubA").textContent = state?.clubs?.A || "CLUB A";
+  document.getElementById("clubB").textContent = state?.clubs?.B || "CLUB B";
+  document.getElementById("nameA").textContent = state?.players?.A || "JOUEUR A";
+  document.getElementById("nameB").textContent = state?.players?.B || "JOUEUR B";
+  document.getElementById("rows").innerHTML = computeStats(state).map(r => row(r[0], r[1], r[2])).join("");
+}
+function showStats(state){
+  render(state);
+  const card = document.getElementById("card");
+  card.classList.add("show");
+  clearTimeout(hideTimer);
+  hideTimer = setTimeout(() => card.classList.remove("show"), 10000);
+}
+socket.on("state", (state) => {
+  const total = Array.isArray(state.pointLog) ? state.pointLog.length : 0;
+  const setsPlayed = Array.isArray(state.setHistory) ? state.setHistory.length : 0;
+  const triggeredBy12Points = total > 0 && total % 12 === 0 && total !== previousTotal;
+  const triggeredBetweenSets = setsPlayed > previousSetsPlayed;
+  if (triggeredBy12Points || triggeredBetweenSets) showStats(state);
+  previousTotal = total;
+  previousSetsPlayed = setsPlayed;
+});
+</script>
 </body>
 </html>
