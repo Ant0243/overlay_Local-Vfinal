@@ -1,0 +1,19 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Stats Table 2</title>
+  <script src="/socket.io/socket.io.js"></script>
+</head>
+<body style="margin:0;background:transparent;overflow:hidden;">
+<script>
+  window.DEFAULT_STATS_ROOM = "table2";
+  fetch('/stats.html').then(r => r.text()).then(html => {
+    document.open();
+    document.write(html.replace('|| "table1"', '|| window.DEFAULT_STATS_ROOM || "table2"'));
+    document.close();
+  });
+</script>
+</body>
+</html>
