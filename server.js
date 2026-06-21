@@ -1,11 +1,32 @@
 // /server.js
 const express = require("express");
 const http = require("http");
+const fs = require("fs");
+const path = require("path");
 const { Server } = require("socket.io");
 
 const app = express();
 const server = http.createServer(app);
 const io = new Server(server);
+const photosDir = path.join(__dirname, "public", "photos");
+
+app.get("/api/photos", (_req, res) => {
+    fs.readdir(photosDir, { withFileTypes: true }, (error, entries) => {
+        if (error) {
+            res.json([]);
+            return;
+        }
+
+        const photos = entries
+            .filter((entry) => entry.isFile())
+            .map((entry) => entry.name)
+            .filter((name) => /\.(png|jpe?g|webp|gif)$/i.test(name))
+            .sort((a, b) => a.localeCompare(b, "fr", { sensitivity: "base" }))
+            .map((name) => ({ name, url: `/photos/${encodeURIComponent(name)}` }));
+
+        res.json(photos);
+    });
+});
 
 app.use(express.static("public"));
 
@@ -56,6 +77,7 @@ function getDefaultState() {
         bestOf: 5,
         clubs: cloneState(sharedMeeting.clubs),
         players: { A: "JOUEUR A", B: "JOUEUR B" },
+        playerPhotos: { A: "", B: "" },
         rankings: { A: "1", B: "2" },
         points: { A: 0, B: 0 },
         teamScore: cloneState(sharedMeeting.teamScore),
@@ -116,6 +138,7 @@ function resetMatchState(state) {
         clubs: cloneState(sharedMeeting.clubs),
         teamScore: cloneState(sharedMeeting.teamScore),
         players: { A: "JOUEUR A", B: "JOUEUR B" },
+        playerPhotos: { A: "", B: "" },
         rankings: { A: "1", B: "2" },
         points: { A: 0, B: 0 },
         showTeamScore: state.showTeamScore,
@@ -197,7 +220,7 @@ function logPoint(state, side) {
         pointNumber,
         at: new Date().toISOString()
     });
-    if (state.pointLog.length > 64) state.pointLog.shift();
+    if (state.pointLog.length > 256) state.pointLog.shift();
     if (onServe) state.servePointsWon[side] += 1;
 }
 
@@ -214,6 +237,7 @@ function applyAction(room, action, state) {
                 syncSharedMeeting(room);
             }
             state.players = { ...state.players, ...(payload.players || {}) };
+            state.playerPhotos = { ...(state.playerPhotos || {}), ...(payload.playerPhotos || {}) };
             state.rankings = { ...state.rankings, ...(payload.rankings || {}) };
             return state;
         }
@@ -306,6 +330,7 @@ io.on("connection", (socket) => {
             ...patch,
             clubs: cloneState(sharedMeeting.clubs),
             players: { ...current.players, ...(patch.players || {}) },
+            playerPhotos: { ...(current.playerPhotos || {}), ...(patch.playerPhotos || {}) },
             rankings: { ...current.rankings, ...(patch.rankings || {}) },
             points: { ...current.points, ...(patch.points || {}) },
             teamScore: cloneState(sharedMeeting.teamScore),
